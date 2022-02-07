@@ -1,0 +1,51 @@
+LPC55S69 in LQFP-64 Package.
+	- Dual 150 MHz Cortex-M33
+	- 630 KB of usable Flash
+	- 320 KB SRAM
+	- Internal ADC reference
+	- USB 2.0
+
+FlexComm Usage
+==============
+FLEXCOMM3	SWO
+FLEXCOMM0	Target Serial
+
+GPIO		Pinmux				Debug I/F	Desc
+======================================================================================
+GPIO0.0		0 GPO push-pull			EXT4		Target SWCLK/TCK
+GPIO0.1		0 GPO push-pull			EXT8		Target TDI
+GPIO0.2		0 GPIO pulldown			EXT3		Target SWDIO/TMS
+GPIO0.3		1 FC3_RXD_SDA_MOSI		EXT1		Target SWO/TDO
+GPIO0.4		  ----
+GPIO0.5		0 GPO push-pull, pullup				J3 installed / LED1 (active low)
+GPIO0.6		  ----
+GPIO0.7		  ----
+GPIO0.8		  ----
+GPIO0.9		0 GPI pullup					Tied to Gnd!?!
+GPIO0.10	  Debug SWO
+GPIO0.11	  Debug SWCLK
+GPIO0.12	  Debug SWDIO
+GPIO0.13	0 GPO push-pull			EXT5_DIR	Target /RST Direction
+GPIO0.14	0 GPO push-pull, pullup				ISP_CTRL
+GPIO0.15	  ----
+GPIO0.16	  ----
+GPIO0.17	  ----
+GPIO0.18	0 GPI pullup					J4 installed, active low
+GPIO0.19	0 GPO push-pull, pullup		EXT5		Target /RST
+GPIO0.20	  ----
+GPIO0.21	  ----
+GPIO0.22	0 GPI pullup					Target Detect, active low
+GPIO0.23	  ----
+GPIO0.24	1 FC0_RXD_SDA_MOSI		EXT9		Target RxD
+GPIO0.25	1 FC0_TXD_SDA_MOSI		EXT7		Target TxD
+GPIO0.26	  ----
+GPIO0.27	0 GPI pullup					J5 installed, active low
+GPIO0.28	0 GPO push-pull			EXT3_DIR	Target SWDIO/TMS Direction
+GPIO0.29	  ----
+GPIO0.30	  ----
+GPIO0.31	  Analog, Digimode off				Target Vcc / 2 using voltage divider.
+
+GPIO1.0		  Analog, Digimode off				J8.1
+GPIO1.1		0 GPI 						J8.2
+GPIO1.2		6 HS_SPI_SCK					J8.3
+GPIO1.3		6 HS_SPI_MISO					J8.4

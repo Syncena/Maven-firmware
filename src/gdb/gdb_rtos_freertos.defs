@@ -1,0 +1,236 @@
+/*
+ * Copyright (c) 2022, Steve C. Woodford.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * Using X-Macros, define both symbols and parameters for FreeRTOS support.
+ */
+
+#ifdef GDB_RTOS_PARAM
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_sizeof_pointer,		/* Enum */
+	GDB_RTOS_PARAM_TYPE_SIZEOF_POINTER,		/* Flags */
+	"void *",					/* Description */
+	4,						/* Default tt4 */
+	4,						/* Default tt2 */
+	4,						/* Default tt4/int */
+	4						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_sizeof_BaseType_t,		/* Enum */
+	GDB_RTOS_PARAM_TYPE_SIZEOF_WORD,		/* Flags */
+	"BaseType_t",					/* Description */
+	4,						/* Default tt4 */
+	4,						/* Default tt2 */
+	4,						/* Default tt4/int */
+	4						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_sizeof_TickType_t,		/* Enum */
+	GDB_RTOS_PARAM_TYPE_SIZEOF_WORD,		/* Flags */
+	"TickType_t",					/* Description */
+	4,						/* Default tt4 */
+	2,						/* Default tt2 */
+	4,						/* Default tt4/int */
+	2						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_sizeof_List_t,		/* Enum */
+	GDB_RTOS_PARAM_TYPE_SIZEOF_STRUCT,		/* Flags */
+	"List_t",					/* Description */
+	20,						/* Default tt4 */
+	20,						/* Default tt2 */
+	36,						/* Default tt4/int */
+	36						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_List_t_uxNumberOfItems,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"List_t, uxNumberOfItems",			/* Description */
+	0,						/* Default tt4 */
+	0,						/* Default tt2 */
+	4,						/* Default tt4/int */
+	4						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_List_t_xListEnd,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"List_t, xListEnd",				/* Description */
+	8,						/* Default tt4 */
+	8,						/* Default tt2 */
+	12,						/* Default tt4/int */
+	12						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_MiniList_t_xItemValue,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"MiniList_t, xItemValue",			/* Description */
+	0,						/* Default tt4 */
+	0,						/* Default tt2 */
+	4,						/* Default tt4/int */
+	2						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_MiniList_t_pxNext,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"MiniList_t, pxNext",				/* Description */
+	4,						/* Default tt4 */
+	4,						/* Default tt2 */
+	8,						/* Default tt4/int */
+	4						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_MiniList_t_pxPrevious,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"MiniList_t, pxPrevious",			/* Description */
+	8,						/* Default tt4 */
+	8,						/* Default tt2 */
+	12,						/* Default tt4/int */
+	8						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_ListItem_t_pxNext,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"ListItem_t, pxNext",				/* Description */
+	4,						/* Default tt4 */
+	4,						/* Default tt2 */
+	8,						/* Default tt4/int */
+	4						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_ListItem_t_pxPrevious,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"ListItem_t, pxPrevious",			/* Description */
+	8,						/* Default tt4 */
+	4,						/* Default tt2 */
+	8,						/* Default tt4/int */
+	4						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_ListItem_t_pvOwner,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"ListItem_t, pvOwner",				/* Description */
+	12,						/* Default tt4 */
+	12,						/* Default tt2 */
+	16,						/* Default tt4/int */
+	12						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_ListItem_t_pxContainer,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"ListItem_t, pxContainer",			/* Description */
+	16,						/* Default tt4 */
+	16,						/* Default tt2 */
+	20,						/* Default tt4/int */
+	16						/* Default tt2/int */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_FREERTOS_offsetof_TCB_t_pcTaskName,	/* Enum */
+	GDB_RTOS_PARAM_TYPE_OFFSETOF,			/* Flags */
+	"TCB_t, pcTaskName",				/* Description */
+	/*
+	 * The '0' in these expressions are place-holders for
+	 * sizeof(xMPUSettings) in TCB_t. Target-specific back-end
+	 * code will fix this up at runtime if we can determine
+	 * portUSING_MPU_WRAPPERS == 1.
+	 */
+	4 + 0 + 20 + 20 + 4 + 4,			/* Default tt4 */
+	4 + 0 + 20 + 20 + 4 + 4,			/* Default tt2 */
+	4 + 0 + 28 + 28 + 4 + 4,			/* Default tt4/int */
+	4 + 0 + 24 + 24 + 4 + 4				/* Default tt2/int */
+)
+#endif /* GDB_RTOS_PARAM */
+
+#ifdef GDB_RTOS_SYMBOL
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_pxCurrentTCB,			/* Enum */
+	"pxCurrentTCB",					/* Symbol */
+	GDB_RTOS_SYM_FLAGS_VOLATILE			/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_pxDelayedTaskList,
+	"pxDelayedTaskList",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_pxOverflowDelayedTaskList,
+	"pxOverflowDelayedTaskList",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_pxReadyTasksLists,
+	"pxReadyTasksLists",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_uxCurrentNumberOfTasks,
+	"uxCurrentNumberOfTasks",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_uxTopUsedPriority,
+	"uxTopUsedPriority",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_xDelayedTaskList1,
+	"xDelayedTaskList1",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_xDelayedTaskList2,
+	"xDelayedTaskList2",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_xPendingReadyList,
+	"xPendingReadyList",
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_xSuspendedTaskList,
+	"xSuspendedTaskList",
+	GDB_RTOS_SYM_FLAGS_OPTIONAL | GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_xTasksWaitingTermination,
+	"xTasksWaitingTermination",
+	GDB_RTOS_SYM_FLAGS_OPTIONAL | GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_vPortStoreTaskMPUSettings,
+	"vPortStoreTaskMPUSettings",
+	GDB_RTOS_SYM_FLAGS_OPTIONAL
+)
+GDB_RTOS_SYMBOL(
+	GDB_FREERTOS_SYM_vTaskAllocateMPURegions,
+	"vTaskAllocateMPURegions",
+	GDB_RTOS_SYM_FLAGS_OPTIONAL
+)
+#endif /* GDB_RTOS_SYMBOL */

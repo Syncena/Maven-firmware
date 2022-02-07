@@ -1,0 +1,130 @@
+/*
+ * Copyright (c) 2022, Steve C. Woodford.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * Using X-Macros, define both symbols and parameters for NuttX support.
+ */
+
+#ifdef GDB_RTOS_PARAM
+GDB_RTOS_PARAM(
+	GDB_RTOS_NUTTX_config_task_name_size,		/* Enum */
+	GDB_RTOS_PARAM_FLAG_CONFIG,			/* Flags */
+	"CONFIG_TASK_NAME_SIZE",			/* Description */
+	15						/* Default value */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_NUTTX_config_build_protected,		/* Enum */
+	GDB_RTOS_PARAM_FLAG_CONFIG |			/* Flags */
+	GDB_RTOS_PARAM_TYPE_BOOLEAN,
+	"CONFIG_BUILD_PROTECTED",			/* Description */
+	0						/* Default value */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_NUTTX_config_armv78m_usebasepri,	/* Enum */
+	GDB_RTOS_PARAM_FLAG_CONFIG |			/* Flags */
+	GDB_RTOS_PARAM_TYPE_BOOLEAN,
+	"CONFIG_ARMV78M_USEBASEPRI",			/* Description */
+	0						/* Default value */
+)
+GDB_RTOS_PARAM(
+	GDB_RTOS_NUTTX_config_armv8m_stackcheck_hardware, /* Enum */
+	GDB_RTOS_PARAM_FLAG_CONFIG |			/* Flags */
+	GDB_RTOS_PARAM_TYPE_BOOLEAN,
+	"CONFIG_ARMV8M_STACKCHECK_HARDWARE",		/* Description */
+	0						/* Default value */
+)
+#endif /* GDB_RTOS_PARAM */
+
+#ifdef GDB_RTOS_SYMBOL
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_debugger_hints,			/* Enum */
+	"g_nuttx_debugger_hints",			/* Symbol */
+	0						/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_readytorun,			/* Enum */
+	"g_readytorun",					/* Symbol */
+	GDB_RTOS_SYM_FLAGS_VOLATILE			/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_pendingtasks,			/* Enum */
+	"g_pendingtasks",				/* Symbol */
+	GDB_RTOS_SYM_FLAGS_VOLATILE			/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_inactivetasks,			/* Enum */
+	"g_inactivetasks",				/* Symbol */
+	GDB_RTOS_SYM_FLAGS_VOLATILE			/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_waitingforsemaphore,		/* Enum */
+	"g_waitingforsemaphore",			/* Symbol */
+	GDB_RTOS_SYM_FLAGS_VOLATILE			/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_waitingforsignal,		/* Enum */
+	"g_waitingforsignal",				/* Symbol */
+	GDB_RTOS_SYM_FLAGS_VOLATILE			/* Flags */
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_waitingformqnotempty,		/* Enum */
+	"g_waitingformqnotempty",			/* Symbol */
+	GDB_RTOS_SYM_FLAGS_OPTIONAL |			/* Flags */
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_waitingformqnotfull,		/* Enum */
+	"g_waitingformqnotfull",			/* Symbol */
+	GDB_RTOS_SYM_FLAGS_OPTIONAL |			/* Flags */
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_waitingforfill,			/* Enum */
+	"g_waitingforfill",				/* Symbol */
+	GDB_RTOS_SYM_FLAGS_OPTIONAL |			/* Flags */
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	GDB_NUTTX_SYM_g_stoppedtasks,			/* Enum */
+	"g_stoppedtasks",				/* Symbol */
+	GDB_RTOS_SYM_FLAGS_OPTIONAL |			/* Flags */
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+GDB_RTOS_SYMBOL(
+	/*
+	 * Used to detect CONFIG_SMP.
+	 * Maven will disable NuttX RTOS thread support if this symbol exists.
+	 */
+	GDB_NUTTX_SYM_config_smp,			/* Enum */
+	"g_assignedtasks",				/* Symbol */
+	GDB_RTOS_SYM_FLAGS_OPTIONAL |			/* Flags */
+	GDB_RTOS_SYM_FLAGS_VOLATILE
+)
+#endif /* GDB_RTOS_SYMBOL */

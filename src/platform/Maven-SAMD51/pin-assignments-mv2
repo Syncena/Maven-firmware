@@ -1,0 +1,81 @@
+Maven2: ATSAMD51G19A-MU
+	- 48-pin QFN
+	- 120 MHz Cortex-M4F
+	- 512KB Flash
+	- 192KB SRAM
+	- 4KB cache
+	- Internal ADC reference
+	- USB
+	- H/W crypto (AES/TRNG/PUKCC)
+	- 2.59 quid/100 on Farnell
+
+Sercom Usage
+============
+SERCOM0 IOSET-3 SPI	Target MOSI/MISO/SCK (for AVR ISP. Else GPIO), SWO for ARM.
+SERCOM1 IOSET-4 USART	Target TxD/RxD
+SERCOM2 IOSET-1 SPI	Network
+SERCOM3 Unused
+SERCOM4 IOSET-2 SPI	Display MOSI/SCK
+SERCOM5 IOSET-6 USART	Console TxD/RxD
+
+Target auto baud: TC2/WO[1] on GPIOA.1, PMUX 'E'
+SWO auto baud:    TC1/WO[0] on GPIOA.6, PMUX 'E'
+AVR rescue clock: TCC0/WO[4] on GPIOA.16, PMUX 'G'
+
+Pin	GPIO		Pinmux			IOSET	Debug I/F	Desc
+======================================================================================
+1	GPIOA.0		D SERCOM1-USART-0-TxD	IOSET-4	EXT7		Target TxD
+2	GPIOA.1		D SERCOM1-USART-1-RxD	IOSET-4	EXT9		Target RxD
+3	GPIOA.2		  GPIO						EXT4->EXT1 Bridge Enable
+4	GPIOA.3		B ADC0/AIN[1]					USB VBUS Measure
+9	GPIOA.4		D SERCOM0-USART-0-TxD	IOSET-3	EXT4		Target MOSI, SWCLK, TCK
+10	GPIOA.5		D SERCOM0-USART-1-XCK	IOSET-3	EXT5		Target RST, PDI Clock, nRST
+11	GPIOA.6		D SERCOM0-USART-2-RxD	IOSET-3	EXT1		Target MISO, PDI Data, uPDI, SWO, TDO
+12	GPIOA.7		B ADC0/AIN[7] AC/AIN[3]		TVCC		Target Vcc Measure/Compare
+13	GPIOA.8		  GPIO						EXT3 Direction
+14	GPIOA.9		  GPIO						EXT4 Direction
+15	GPIOA.10	  GPIO						EXT1 Direction
+16	GPIOA.11	  GPIO						Unused
+21	GPIOA.12	C SERCOM2-SPI-0-MISO	IOSET-1			Network MISO
+22	GPIOA.13	C SERCOM2-SPI-1-SCK	IOSET-1			Network SCK
+23	GPIOA.14	  GPIO						Network /CS
+24	GPIOA.15	C SERCOM2-SPI-3-MOSI	IOSET-1			Network MOSI
+25	GPIOA.16	G TCC0/WO[4] or GPIO		EXT8		Target Clock, TDI
+26	GPIOA.17	  GPIO						Network ENABLE
+27	GPIOA.18	A EIC/EXTINT[2]					Network /IRQ
+28	GPIOA.19	  GPIO						Network/Display /RST
+29	GPIOA.20	  GPIO				EXT3		Target SCK, SWDIO, TMS
+30	GPIOA.21	  GPIO						EXT5 Direction
+31	GPIOA.22	  GPIO						EXT8 Direction
+32	GPIOA.23	  GPIO						EXT9 Direction
+33	GPIOA.24	H USB_D-					USB D-
+34	GPIOA.25	H USB_D+					USB D+
+39	GPIOA.27	  GPIO						EXT7 Direction
+45	GPIOA.30	  SWCLK						Debug Header
+46	GPIOA.31	  SWDIO						Debug Header
+
+47	GPIOB.2		D SERCOM5-USART-0-TxD	IOSET-6			Debug Header (Console TxD)
+48	GPIOB.3		D SERCOM5-USART-1-RxD	IOSET-6			Debug Header (Console RxD)
+7	GPIOB.8		D SERCOM4-SPI-0-MOSI	IOSET-2			Display MOSI
+8	GPIOB.9		D SERCOM4-SPI-1-SCK	IOSET-2			Display SCK
+19	GPIOB.10	  GPIO						Display DCRS
+20	GPIOB.11	  GPIO						Display /CS
+37	GPIOB.22	  GPIO						Power/Status LED - Active Low
+38	GPIOB.23	A EIC/EXTINT[7]					Button
+
+40	RESET		  /RST						Debug Header
+
+5	GndANA
+
+18	Gnd
+35	Gnd
+42	Gnd
+
+6	VddANA
+
+17	VddIO
+36	VddIO
+44	VddIO
+
+41	VddCORE
+43	Vsw

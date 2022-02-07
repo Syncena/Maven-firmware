@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+.swp
+.dep
+.gdb_history
+.gdbinit
+.bin
+tags
+obj-debug
+obj-release

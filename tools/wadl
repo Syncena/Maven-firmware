@@ -1,0 +1,47 @@
+#!/bin/sh
+
+#
+# Front-end script to permit flashing/erasing SoCs via GDB and a debug
+# probe running Maven firmware (should also work with Blackmagic)
+#
+# Usage:
+#	wadl [-e] [-p <probe>] [image] [probe]
+#
+#	-e		Perform a full flash erase before programming.
+#	-p <probe>	Specifies the debug probe to use. This is passed
+#			to gdb's "target extended-remote" command, so can
+#			be of the form "IPv4:port" or "/dev/tty...".
+#	[image]		Firmware image file (optional).
+#	[probe]		IPv4 address of Maven probe (optional).
+#
+
+gdb=arm-none-eabi-gdb
+probe="192.168.1.128"
+
+if [ "${1}" = "-e" ]; then
+	erase="-ex flash-erase"
+	shift
+fi
+
+if [ "${1}" = "-p" ]; then
+	target="${2}"
+	shift
+	shift
+else
+	target="${probe}:3333"
+fi
+
+fw_img="${1}"
+
+if [ "$2" != "" ]; then
+	target="$2:3333"
+fi
+
+if [ "${fw_img}" != "" ]; then
+	${gdb} -nx --batch  -ex "target extended-remote ${target}" $erase -ex "load ${fw_img}"  -ex 'kill' -ex quit
+elif [ "${erase}" != "" ]; then
+	${gdb} -nx --batch  -ex "target extended-remote ${target}" $erase -ex 'kill' -ex quit
+else
+	echo "usage: wadl [-e] [-p <probe>] [image] [probe]"
+	exit 1
+fi

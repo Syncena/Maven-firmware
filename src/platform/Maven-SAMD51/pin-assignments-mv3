@@ -1,0 +1,104 @@
+Maven3: ATSAMD51J20A-MU
+	- 64-pin QFN
+	- 120 MHz Cortex-M4F
+	- 1 MB Flash
+	- 256 KB SRAM
+	- 4 KB cache
+	- Internal ADC reference
+	- USB
+	- H/W crypto (AES/TRNG/PUKCC)
+	- 3.59 quid/100 on Farnell
+
+Sercom Usage
+============
+SERCOM0 IOSET-3 SPI	Target MOSI/MISO/SCK (for AVR ISP. Else GPIO), SWO for ARM.
+SERCOM1 IOSET-4 USART	Target TxD/RxD
+SERCOM2 IOSET-1 SPI	Network
+SERCOM3 Unused
+SERCOM4 IOSET-2 SPI	Display MOSI/SCK
+SERCOM4 IOSET-1 USART	WILC1000 UART for debug purposes
+SERCOM5 IOSET-6 USART	Console TxD/RxD
+
+Target auto baud: TC2/WO[1] on GPIOA.1, PMUX 'E'
+SWO auto baud:    TC1/WO[0] on GPIOA.6, PMUX 'E'
+AVR rescue clock: TCC0/WO[7] on GPIOB.31, PMUX 'G'
+
+Differences to Maven2 pinout:
+	1. EXT8 has moved from GPIOA.16 to GPIOB.31
+	2. LED control has move from GPIOB.22 to GPIOB.1
+	3. WILC1000 debug UART is available on SERCOM4 IOSET-1. Since SERCOM4
+	   is primarily used for the display, the two functions are mutually
+	   exclusive. It's not clear if the debug UART will be of much use,
+	   but best to at least have it available.
+
+Pin	GPIO		Pinmux			IOSET	Debug I/F	Desc
+======================================================================================
+1	GPIOA.0		D SERCOM1-USART-0-TxD	IOSET-4	EXT7		Target TxD
+2	GPIOA.1		D SERCOM1-USART-1-RxD	IOSET-4	EXT9		Target RxD
+3	GPIOA.2		  GPIO						EXT4->EXT1 Bridge Enable
+4	GPIOA.3		B ADC0/AIN[1]					USB VBUS Measure
+13	GPIOA.4		D SERCOM0-USART-0-TxD	IOSET-3	EXT4		Target MOSI, SWCLK, TCK
+14	GPIOA.5		D SERCOM0-USART-1-XCK	IOSET-3	EXT5		Target RST, PDI Clock, nRST
+15	GPIOA.6		D SERCOM0-USART-2-RxD	IOSET-3	EXT1		Target MISO, PDI Data, uPDI, SWO, TDO
+16	GPIOA.7		B ADC0/AIN[7] AC/AIN[3]		TVCC		Target Vcc Measure/Compare
+17	GPIOA.8		  GPIO						EXT3 Direction
+18	GPIOA.9		  GPIO						EXT4 Direction
+19	GPIOA.10	  GPIO						EXT1 Direction
+20	GPIOA.11	  ----						Unused
+29	GPIOA.12	C SERCOM2-SPI-0-MISO	IOSET-1			Network MISO
+30	GPIOA.13	C SERCOM2-SPI-1-SCK	IOSET-1			Network SCK
+31	GPIOA.14	  GPIO						Network /CS
+32	GPIOA.15	C SERCOM2-SPI-3-MOSI	IOSET-1			Network MOSI
+35	GPIOA.16	  ----						Unused
+36	GPIOA.17	  GPIO						Network ENABLE
+37	GPIOA.18	A EIC/EXTINT[2]					Network /IRQ
+38	GPIOA.19	  GPIO						Network/Display /RST
+41	GPIOA.20	  GPIO				EXT3		Target SCK, SWDIO, TMS
+42	GPIOA.21	  GPIO						EXT5 Direction
+43	GPIOA.22	  GPIO						EXT8 Direction
+44	GPIOA.23	  GPIO						EXT9 Direction
+45	GPIOA.24	H USB_D-					USB D-
+46	GPIOA.25	H USB_D+					USB D+
+51	GPIOA.27	  GPIO						EXT7 Direction
+45	GPIOA.30	  SWCLK						Debug Header
+46	GPIOA.31	  SWDIO						Debug Header
+
+61	GPIOB.0		  ----						Unused
+62	GPIOB.1		  GPIO						Power/Status LED - Active Low
+63	GPIOB.2		D SERCOM5-USART-0-TxD	IOSET-6			Debug Header (Console TxD)
+64	GPIOB.3		D SERCOM5-USART-1-RxD	IOSET-6			Debug Header (Console RxD)
+5	GPIOB.4		  ----						Unused
+6	GPIOB.5		  ----						Unused
+9	GPIOB.6		  ----						Unused
+10	GPIOB.7		  ----						Unused
+11	GPIOB.8		D SERCOM4-SPI-0-MOSI	IOSET-2			Display MOSI
+12	GPIOB.9		D SERCOM4-SPI-1-SCK	IOSET-2			Display SCK
+23	GPIOB.10	  GPIO						Display DCRS
+24	GPIOB.11	  GPIO						Display /CS
+25	GPIOB.12	C SERCOM4-USART-0-TxD	IOSET-1			WILC1000 UART RxD (Pin 19)
+26	GPIOB.13	  ----						Unused
+27	GPIOB.14	C SERCOM4-USART-2-RxD	IOSET-1			WILC1000 UART TxD (Pin 14)
+28	GPIOB.15	  ----						Unused
+39	GPIOB.16	  ----						Unused
+40	GPIOB.17	  ----						Unused
+49	GPIOB.22	  ----						Unused
+50	GPIOB.23	A EIC/EXTINT[7]					Button
+59	GPIOB.30	  SWO						Debug Header
+60	GPIOB.31	G TCC0/WO[7] or GPIO		EXT8		Target Clock, TDI
+
+40	RESET		  /RST						Debug Header
+
+7	GndANA
+22	Gnd
+33	Gnd
+47	Gnd
+54	Gnd
+Pad	Gnd
+
+8	VddANA
+21	VddIO
+34	VddIO
+48	VddIO
+56	VddIO
+53	VddCORE
+55	Vsw (Unused)

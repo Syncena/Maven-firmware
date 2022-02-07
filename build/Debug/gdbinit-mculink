@@ -1,0 +1,28 @@
+# Configuration file for orbuculum
+
+source ../../Debug/gdbtrace.init
+set print pretty
+
+# Configure LPC55S69 SWO pin
+define	enableSWO
+  enableLPC55S69SWO 10
+  prepareSWO 150000000 2000000 0 0
+
+  dwtSamplePC 1
+  dwtSyncTap 3
+  dwtPostTap 1
+  dwtPostInit 1
+  dwtPostReset 7
+  dwtCycEna 1
+
+  ITMId 1
+  #ITMGTSFreq 3
+  #ITMTSPrescale 3
+  ITMTXEna 1
+  ITMSYNCEna 1
+  ITMEna 1
+  ITMSWOEna 1
+
+  ITMTER 0 0xFFFFFFFF
+  ITMTPR 0xFFFFFFFF
+end

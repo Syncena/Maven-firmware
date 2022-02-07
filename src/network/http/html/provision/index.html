@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<title>Maven</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+.content {
+	max-width: 960px;
+	margin: auto;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: "Lato", sans-serif;
+//	background-color: black;
+//	background-color: white;
+//	background-color: #d1e3ec;
+}
+
+.container {
+	width: 100%;
+	padding-right: 12px;
+	padding-left: 12px;
+	margin: auto;
+}
+
+@media (min-width: 576px) {
+	.container {
+		max-width: 540px;
+	}
+}
+@media (min-width: 768px) {
+	.container {
+		max-width: 720px;
+	}
+}
+@media (min-width: 992px) {
+	.container {
+		max-width: 960px;
+	}
+}
+@media (min-width: 1200px) {
+	.container {
+		max-width: 1140px;
+	}
+}
+@media (min-width: 1452px) {
+	.container {
+		max-width: 1360px;
+	}
+}
+
+.header {
+	padding: 15px;
+	text-align: center;
+	background-color: #0050ef;	/* Cobalt */
+	background: linear-gradient(to bottom right, #0036a3, #3d7eff);
+	color: white;
+}
+
+.header h1 {
+	font-size: 40px
+}
+
+.aplist {
+	overflow: hidden;
+	background-color: #d1e3ec;
+	padding: 5px;
+	border: 3px solid #000000;
+	height: 100%;
+}
+
+.aplist li:hover {
+	background-color: #c1d3dc;
+	cursor: pointer;
+}
+
+.fg-white {
+	color: white !important;
+}
+
+.fg-black {
+	color: black !important;
+}
+
+.mif-lock:before {
+	content: "\e660";
+}
+.mif-wifi-low:before {
+	content: "\e60c";
+}
+.mif-wifi-mid:before {
+	content: "\e60d";
+}
+.mif-wifi-full:before {
+	content: "\e634";
+}
+.mif-wifi-lock:before {
+	content: "\e1d9";
+}
+.mif-key:before {
+	content: "\e98d";
+}
+
+@font-face {
+	font-family: 'metro';
+	src: url('/wifi.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+[class*=mif-] {
+	font-family: 'metro' !important;
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	display: inline-block;
+	position: relative;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.mif-lg {
+	font-size: 1.2em;
+}
+.mif-4x {
+	font-size: 2.5em;
+}
+
+.navbar {
+	overflow: hidden;
+	background-color: #0036a3;	/* Dark Cobalt */
+	padding: 4px;
+}
+
+.navbar button {
+	float: left;
+	padding: 14px 20px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	font-size: 25px;
+	background-color: #0036a3;	/* Dark Cobalt */
+	color: white;
+}
+
+.nav-button.active {
+	color: #0036a3;  /* Dark Cobalt */
+	background-color: #3d7eff;
+}
+
+.navbar button:hover {
+	color: #0036a3;			/* Dark Cobalt */
+	background-color: white;
+}
+
+.place-right {
+	float: right !important;
+}
+
+.loader
+{
+	border: 10px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 10px solid #607d8b;
+	width: 32px;
+	height: 32px;
+	-webkit-animation: spin 2s linear infinite; /* Safari */
+	animation: spin 2s linear infinite;
+	display: inline-block;
+}
+
+@-webkit-keyframes spin
+{
+	0% { -webkit-transform: rotate(0deg); }
+	100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin
+{
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+.icon {
+	width: 48px;
+	height: 30px;
+}
+
+ul {
+	margin: 1rem;
+	list-style-type: none;
+}
+
+.login-form {
+	width: 350px;
+	height: auto;
+	top: 50%;
+}
+
+.form-group {
+	display: block;
+	position: relative;
+//	margin-left: 14px;
+//	margin-right: 14px;
+}
+
+.form-group button {
+	float: left;
+	padding: 14px 20px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	font-size: 20px;
+	background-color: #0036a3;	/* Dark Cobalt */
+	color: white;
+	margin-top: 14px;
+}
+
+.form-button.active {
+	color: #0036a3;  /* Dark Cobalt */
+	background-color: #3d7eff;
+}
+
+.form-group button:hover {
+	color: #0036a3;			/* Dark Cobalt */
+	background-color: white;
+}
+
+#wifipopup
+{
+	position: absolute;
+	left: 50%;
+	top: 5%;
+	height: auto;
+	z-index: 2;
+	padding: 24px !important;
+	margin-right: -50%;
+	display: none;
+	background-color: #d1e3ec;
+	transform: translate(-50%, 0%);
+}
+
+.drop-shadow {
+	-webkit-box-shadow: 3px 3px 6px 0 rgba(0, 0, 0, 0.4);
+			box-shadow: 3px 3px 6px 0 rgba(0, 0, 0, 0.4);
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="wifipopup" class="drop-shadow">
+	<form action="javascript:" id="wifiform" class="login-form">
+		<span class="form-group mif-4x mif-wifi-lock place-right" style="margin-top:-10px">
+		</span>
+		<h3 class="form-group">Enter WiFi Network Details</h3>
+		<hr>
+		<div class="form-group">
+			<table>
+				<tr>
+					<td>
+						<span class="mif-wifi-full mif-lg"></span>
+					<td>
+						<input type="text" minlength="1" maxlength="32" placeholder="WiFi Network Name"
+						       id="wifi-ssid" name="wifi-ssid">
+			</table>
+		</div>
+		<div class="form-group">
+			<table>
+				<tr>
+					<td>
+						<span class="mif-key mif-lg"></span>
+					<td>
+						<input type="password" minlength="8" maxlength="64" placeholder="WiFi Network Passphrase"
+						       id="wifi-pass" name="wifi-pass">
+			</table>
+		</div>
+
+		<div class="form-group">
+			<button class="form-button" onclick="wifiform_connect('#wifiform', 'apconn.cgi')">Connect</button>
+			<button class="form-button" onclick="wifiform_cancel()">Cancel</button>
+		</div>
+	</form>
+</div>
+
+
+<div class="header container">
+	<h1>Maven: WiFi Cortex-M Debugger/Programmer</h1>
+	<h2>© 2022 Steve C. Woodford</h2>
+	<h3>Connect Maven to a WiFi network</h3>
+</div>
+
+<div class="navbar container">
+	<button class="nav-button" onclick="manual_connect()">Enter WiFi Network Manually</button>
+	<p id="spinner" class="loader place-right"></p>
+</div>
+
+<div class="aplist container">
+	<h3>Maven detected the following nearby WiFi networks...</h3>
+	<hr>
+	<ul id="aplist">
+	</ul>
+</div>
+
+<script src="jquery.min.js"></script>
+<script>
+	function manual_connect()
+	{
+		$("#wifi-pass").prop("disabled", false);
+		$("#wifi-pass").val("");
+		$("#wifi-pass").prop("disabled", false);
+		document.getElementById("wifipopup").style.display = "block";
+	}
+
+	function wifiform_cancel()
+	{
+		document.getElementById("wifiform").reset();
+		document.getElementById("wifipopup").style.display = "none";
+	}
+
+	function wifiform_connect(form, url)
+	{
+		var formdata;
+
+		document.getElementById("spinner").style.visibility = "visible";
+		formdata = $(form).serialize();
+
+		$.post(url, formdata)
+			.done(function(resp) {
+				if (resp.trim() != "OK") {
+					alert(resp);
+				} else {
+					document.getElementById("wifipopup").style.display = "none";
+				}
+			})
+			.fail(function(xhr, st, err) {
+				console.log("Form failed: " + st + ", err " + err);
+				alert("Failed to submit form!");
+			});
+
+		document.getElementById("spinner").style.visibility = "hidden";
+		return true;
+	}
+
+	function aplist_click(ap, enc)
+	{
+		$("#wifi-ssid").val(ap);
+		$("#wifi-pass").val("");
+		if (enc == "0") {
+			$("#wifi-pass").prop("disabled", true);
+		} else {
+			$("#wifi-pass").prop("disabled", false);
+		}
+		document.getElementById("wifipopup").style.display = "block";
+	}
+
+	function build_aplist(aps)
+	{
+		var aplist="";
+		for (let ap of aps) {
+			aplist += "<li onclick=\"aplist_click(&quot;" + ap.ssid + "&quot;," + ap.enc + ")\"";
+			aplist += " class=\"apitem\">";
+			aplist += "<table cellspacing=\"3\"><tr>";
+			aplist += "<td class=\"icon\">";
+			aplist += "<span class=\"";
+			if (ap.rssi > -70) {
+				aplist += "mif-wifi-full";
+			} else
+			if (ap.rssi > -85) {
+				aplist += "mif-wifi-mid";
+			} else {
+				aplist += "mif-wifi-low";
+			}
+			aplist += " mif-lg\">";
+			if (ap.enc) {
+				aplist += "<span class=\"mif-lock\"></span>";
+			}
+			aplist += "</span>";
+			aplist += "<td class=\"apname\">" + ap.ssid;
+			aplist += "</table></li>";
+		}
+
+		$("#aplist").html(aplist);
+		document.getElementById("spinner").style.visibility = "hidden";
+	}
+
+	function fetch_aplist()
+	{
+		document.getElementById("spinner").style.visibility = "visible";
+		$.getJSON({url:"/aplist.json", cache:false})
+			.done(function (resp) {
+				build_aplist(resp);
+			})
+			.fail(function (xhr, status, err) {
+				alert("Failed to fetch WiFi network list from Maven!");
+				document.getElementById("spinner").style.visibility = "hidden";
+			});
+	}
+
+	$( document ).ready(fetch_aplist);
+</script>
+
+</body>
+</html>

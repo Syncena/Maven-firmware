@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<title>Maven</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+.content {
+	max-width: 960px;
+	margin: auto;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: "Lato", sans-serif;
+	background-color: black;
+}
+
+.header {
+	padding: 15px;
+	text-align: center;
+	background-color: #0050ef;	/* Cobalt */
+	background: linear-gradient(to bottom right, #0036a3, #3d7eff);
+	color: white;
+}
+
+.header h1 {
+	font-size: 40px
+}
+
+.navbar {
+	overflow: hidden;
+	background-color: #0036a3;	/* Dark Cobalt */
+	padding: 4px;
+}
+
+.navbar button {
+	float: left;
+	padding: 14px 20px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	font-size: 25px;
+	background-color: #0036a3;	/* Dark Cobalt */
+	color: white;
+	width: 160px;
+}
+
+.nav-button.active {
+	color: #0036a3;  /* Dark Cobalt */
+	background-color: #3d7eff;
+}
+
+.navbar button:hover {
+	color: #0036a3;			/* Dark Cobalt */
+	background-color: white;
+}
+
+/* Column container */
+.row {
+	display: -ms-flexbox; /* IE10 */
+	display: flex;
+	-ms-flex-wrap: wrap; /* IE10 */
+	flex-wrap: wrap;
+}
+
+/* Create two unequal columns that sits next to each other */
+/* Sidebar/left column */
+.side {
+	-ms-flex: 30%; /* IE10 */
+	flex: 30%;
+	color: white;
+	background-color: #3d7eff;	/* Light Cobalt */
+	padding: 20px;
+}
+
+/* Main column */
+.main {
+	-ms-flex: 70%; /* IE10 */
+	flex: 70%;
+	/*background-color: #4d8eff;*/
+	background-color: #d1e3ec;
+	padding: 20px;
+	border-left: 3px solid #bbb;
+}
+
+.main-content {
+	float: left;
+	display: none;
+	height: 760px;
+}
+
+ul.no-bullets {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+/* Dashed border */
+hr.dashed {
+	border-top: 3px dashed #bbb;
+}
+
+/* Dotted border */
+hr.dotted {
+	border-top: 3px dotted #bbb;
+}
+
+/* Solid border */
+hr.solid {
+	border-top: 3px solid #bbb;
+}
+
+/* Rounded border */
+hr.rounded {
+	border-top: 8px solid #bbb;
+	border-radius: 5px;
+}
+
+.fg-white {
+	color: white !important;
+}
+
+.fg-black {
+	color: black !important;
+}
+
+.leftspacer {
+	width: 180px;
+	height: 8px;
+	background: transparent;
+}
+
+.lc {
+	width: 180px;
+	color: #727272;
+	background-color: transparent;
+}
+
+.lc-fixed {
+	width: 180px;
+	color: #727272;
+	background-color: transparent;
+	font: 12pt monospace;
+}
+
+.rightspacer {
+	height: 8px;
+	background: transparent;
+}
+
+.rc {
+	color: #727272;
+	background-color: transparent;
+}
+
+td.lbutt {
+	height: 35px;
+	background-color:  transparent;
+}
+td.rbutt {
+	height: 35px;
+	background-color:  transparent ;
+	padding-left: 8px;
+}
+
+.subhead {
+	color: black;
+	background: transparent;
+	font: bold 15pt Arial, Helvetica, sans-serif;
+}
+
+.tooltip {
+	position: relative;
+	display: inline-block;
+/*	border-bottom: 1px dotted black; */
+}
+
+.tooltip .tooltiptext {
+	visibility: hidden;
+	width: 300px;
+	color: #ffffff;
+	background-color: #000000;
+	text-align: center;
+	border-radius: 6px;
+	padding: 5px 0;
+	position: absolute;
+	z-index: 2;
+	bottom: 125%;
+	left: 50%;
+	margin-left: -150px;
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+	opacity: 1;
+}
+
+@media screen and (max-height: 450px) {
+	.side {padding-top: 15px;}
+	.side a {font-size: 18px;}
+}
+</style>
+</head>
+
+<body class="content">
+
+<div class="header">
+	<h1>MAVEN</h1>
+	<h2>WiFi Cortex-M Debugger/Programmer</h2>
+	<h3>© 2022 Steve C. Woodford</h3>
+</div>
+
+<div class="navbar">
+	<button class="nav-button active" onclick="open_main(event, 'target')" id="defaultopen">Target</button>
+	<button class="nav-button" onclick="open_main(event, 'debugging')">Debugging</button>
+	<button class="nav-button" onclick="open_main(event, 'comms')">Comms</button>
+	<button class="nav-button" onclick="open_main(event, 'network')">Network</button>
+</div>
+
+<div class="row">
+	<div class="side">
+		<h3 class="fg-black">Target Summary</h3>
+		<strong>Vendor:&nbsp;</strong><span class="target-vendor"></span><br>
+		<strong>Device:&nbsp;</strong><span class="target-soc"></span><br>
+		<strong>Volts:&nbsp;</strong><span class="target-vcc"></span><br>
+
+		<hr class="solid">
+
+		<h3 class="fg-black">Network Summary</h3>
+		<strong>WiFi:&nbsp;</strong><span class="netsum-ssid"></span><br>
+		<strong>Channel:&nbsp;</strong><span class="netsum-chan"></span><br>
+		<strong>Signal:&nbsp;</strong><span class="netsum-sig"></span><br>
+		<strong>Address:&nbsp;</strong><span class="netsum-ip"></span><br>
+
+		<hr class="solid">
+
+		<h3 class="fg-black">Maven</h3>
+		<strong>Firmware Version:&nbsp;</strong><span class="maven-fwver"></span><br>
+		<strong>Firmware Date:&nbsp;</strong><span class="maven-fwdate"></span><br>
+		<strong>Serial #:&nbsp;</strong><span class="maven-serial"></span><br>
+
+		<hr class="solid">
+	</div>
+
+	<div class="main">
+		<div id="target" class="main-content">
+			<table cellspacing="0">
+				<tr>
+					<td class="leftspacer">
+					<td class="rightspacer">
+				<tr>
+					<td class="subhead" nowrap>Target Details
+					<td class="rc" nowrap>&nbsp;
+				<tr>
+					<td class="lc" nowrap>Vendor
+					<td class="rc target-vendor" nowrap>
+				<tr>
+					<td class="lc" nowrap>Device
+					<td class="rc target-soc" nowrap>
+				<tr>
+					<td class="lc" nowrap>Additional Info
+					<td class="rc target-extra" nowrap>
+			</table>
+			<table id="cpu-table" cellspacing="0">
+			</table>
+			<table id="mem-table" cellspacing="0">
+			</table>
+		</div>
+
+		<div id="comms" class="main-content">
+			<form id="comms-form" action="javascript:">
+				<table cellspacing="0">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>Target Serial
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								USB Port Assignment
+								<span class="tooltiptext">
+									Selects the USB virtual COM port for the target serial connection.
+									This port can be shared with SWO or Semi-hosted console.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-serial-usb" name="tc-serial-usb">
+								<option value="-">None
+								<option value="0">CDC Port 0
+								<option value="1">CDC Port 1
+								<option value="2">CDC Port 2
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								TCP Port Assignment
+								<span class="tooltiptext">
+									Selects the TCP network port for the target serial connection.
+									Setting this to 0 will disable access via the network.
+									This port can be shared with SWO or Semi-hosted console.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="tc-serial-tcp" name="tc-serial-tcp"
+							       min="1024" max="65535" value="2000">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								Mode
+								<span class="tooltiptext">
+									Configures Target Serial's data mode. Supported modes are:<br>
+									'CRLF' to convert an LF character into a CRLF pair<br>
+									'Telnet' to perform telnet negotiation when a network
+									connection is established. This will instruct the host to
+									switch from line-mode to character-mode.<br>
+									'Raw' to transfer Tx/Rx data unmolested. This is a good
+									choice at high data rates.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-serial-mode" name="tc-serial-mode">
+								<option value="0">Raw
+								<option value="1">CRLF Only
+								<option value="2">Telnet Only
+								<option value="3">CRLF and Telnet
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								Baudrate and Format
+								<span class="tooltiptext">
+									Configure Maven's Target Serial UART to match the settings
+									on the target. Maven supports almost any baudrate between
+									300 and 2.5 M baud. Not all rates will be exactly achievable,
+									but Maven will try to be within 1.5 % of the chosen rate.
+									You will be notified if the rate is not achievable.<br>
+									Note that high baudrates will increase the risk of overrun
+									for connections made across the network.<br>
+									The other options for data bits, parity, and stop bits are
+									self-explanatory. In the vast majority of cases, the default
+									settings will apply.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="tc-serial-baud" name="tc-serial-baud"
+							       min="300" max="2500000" value="38400">
+							<select id="tc-serial-data-bits" name="tc-serial-data-bits">
+								<option value="5">5 Data Bits
+								<option value="6">6 Data Bits
+								<option value="7">7 Data Bits
+								<option value="8">8 Data Bits
+							</select>
+							<select id="tc-serial-parity" name="tc-serial-parity">
+								<option value="N">No Parity
+								<option value="O">Odd Parity
+								<option value="E">Even Parity
+							</select>
+							<select id="tc-serial-stop-bits" name="tc-serial-stop-bits">
+								<option value="1">1 Stop Bit
+								<option value="2">2 Stop Bits
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>SWO
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								USB Port Assignment
+								<span class="tooltiptext">
+									Selects the USB virtual COM port for the SWO connection.
+									This port can be shared with Target Serial or Semi-hosted console.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-swo-usb" name="tc-swo-usb">
+								<option value="-">None
+								<option value="0">CDC Port 0
+								<option value="1">CDC Port 1
+								<option value="2">CDC Port 2
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								TCP Port Assignment
+								<span class="tooltiptext">
+									Selects the TCP network port for the SWO connection.
+									Setting this to 0 will disable access via the network.
+									This port can be shared with Target Serial or Semi-hosted console.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="tc-swo-tcp" name="tc-swo-tcp"
+							       min="1024" max="65535" value="2001">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								Mode
+								<span class="tooltiptext">
+									Configures SWO's data mode. Supported modes are:<br>
+									'CRLF' to convert an LF character into a CRLF pair<br>
+									'Telnet' to perform telnet negotiation when a network
+									connection is established. This will instruct the host to
+									switch from line-mode to character-mode.<br>
+									'Raw' to transfer Tx/Rx data unmolested. This is a good
+									choice at high data rates.<br>
+									The first two options are suitable for simple console-style
+									SWO output, while the last option is essential for all other
+									SWO data streams.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-swo-mode" name="tc-swo-mode">
+								<option value="0">Raw
+								<option value="1">CRLF Only
+								<option value="2">Telnet Only
+								<option value="3">CRLF and Telnet
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								Baudrate
+								<span class="tooltiptext">
+									Configure Maven's SWO UART to match the settings on the
+									target. Maven supports almost any baudrate between 300
+									300 and 2.5 M baud. Not all rates will be exactly achievable,
+									but Maven will try to be within 1.5 % of the chosen rate.
+									You will be notified if the rate is not achievable.
+									Note that high baudrates will increase the risk of overrun
+									for connections made across the network.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="tc-swo-baud" name="tc-swo-baud"
+							       min="300" max="2500000" value="2250000">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>Semi-hosted Console
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								USB Port Assignment
+								<span class="tooltiptext">
+									Selects the USB virtual COM port for Semi-hosted console I/O.
+									This port can be shared with Target Serial or SWO.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-semi-usb" name="tc-semi-usb">
+								<option value="-">None
+								<option value="0">CDC Port 0
+								<option value="1">CDC Port 1
+								<option value="2">CDC Port 2
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								TCP Port Assignment
+								<span class="tooltiptext">
+									Selects the TCP network port for Semi-hosted console I/O.
+									Setting this to 0 will disable access via the network.
+									This port can be shared with Target Serial or SWO.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="tc-semi-tcp" name="tc-semi-tcp"
+							       min="1024" max="65535" value="2002">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								Mode
+								<span class="tooltiptext">
+									Configures the Semi-hosted console's data mode. Supported modes are:<br>
+									'CRLF' to convert an LF character into a CRLF pair<br>
+									'Telnet' to perform telnet negotiation when a network
+									connection is established. This will instruct the host to
+									switch from line-mode to character-mode.<br>
+									'Raw' to transfer Tx/Rx data unmolested.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-semi-mode" name="tc-semi-mode">
+								<option value="0">Raw
+								<option value="1">CRLF Only
+								<option value="2">Telnet Only
+								<option value="3">CRLF and Telnet
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>GDB Server
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								USB Port Assignment
+								<span class="tooltiptext">
+									Selects the USB virtual COM port for Maven's GDB serial.
+									This port cannot be shared with other Target Comms services.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="tc-gdb-usb" name="tc-gdb-usb">
+								<option value="-">None
+								<option value="0">CDC Port 0
+								<option value="1">CDC Port 1
+								<option value="2">CDC Port 2
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								TCP Port Assignment
+								<span class="tooltiptext">
+									Selects the TCP network port for the GDB server.
+									Setting this to 0 will disable access via the network.
+									This port cannot be shared with other Target Comms services.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="tc-gdb-tcp" name="tc-gdb-tcp"
+							       min="1024" max="65535" value="3333">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>USB Settings
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								USB Vendor ID
+								<span class="tooltiptext">
+									In order to enable support for USB, Maven requires valid USB Vendor
+									and Product IDs. Unfortunately, acquiring a Vendor ID costs a
+									substantial amount of money; too much for a small company to bear for
+									a product where USB is not the primary method of connection. Thus Maven's
+									USB virtual COM ports are disabled by default, but can be enabled by
+									specifying a VID/PID pair here. You can choose any value between 0x0001
+									and 0xfffe for either of them, but you must ensure the value for VID
+									does not clash with an existing device. Higher values (above 0x4000)
+									seem to be less prevalent. Setting VID or PID to 0 will disable support
+									for USB virtual COM ports. Note that VID and PID are interpreted as
+									hexadecimal values. Also note than any change will only take effect after
+									Maven is rebooted.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="text" id="tc-usb-vendor" name="tc-usb-vendor"
+								   size="8" maxlength="6" value="0x0000">
+								(Hexadecimal)
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							USB Product ID
+						<td class="rc" nowrap>
+							<input type="text" id="tc-usb-device" name="tc-usb-device"
+								   size="8" maxlength="6" value="0x0000">
+								(Hexadecimal)
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lbutt">
+						<td class="rbutt">
+							<input type="submit" class="stdbutton" name="apply"
+							       value=" Save " onclick="submit_form('#comms-form', 'targetcomms.cgi');">
+							<input type="reset" class="stdbutton" name="cancel"
+							       value="Cancel " onclick="comms_refresh();">
+				</table>
+			</form>
+		</div>
+
+		<div id="debugging" class="main-content">
+			<form id="debug-form" action="javascript:">
+				<table cellspacing="0">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>GDB Settings
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Connect Behaviour</strong>
+								<span class="tooltiptext">
+								    When GDB connects to Maven, you can choose to have Maven automatically attach
+                                    to the target (the default), or to require a manual attach via the GDB command
+									line. The former is useful for quickly starting a debug session, while the
+									latter may be preferable for multi-core targets, or for issuing monitor
+									commands before starting a debug session.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="radio" id="gdb-attach-auto" name="gdb-attach-auto" value="1" checked>
+								<label for="gdb-attach-auto">
+									Auto Attach
+								</label>
+							<input type="radio" id="gdb-attach-manual" name="gdb-attach-manual" value="0">
+								<label for="gdb-attach-manual">
+									Manual Attach
+								</label>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Attach Behaviour</strong>
+								<span class="tooltiptext">
+									When GDB attaches to a target, you can choose to reset the target and halt it
+									at the first instruction, or you can simply halt it at the current instruction.
+									The latter is useful if you need to inspect the current state of a running
+									firmware image. The former (default) is useful if you wish to start execution
+									anew, perhaps after loading a new firmware image.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="radio" id="gdb-attach-reset" name="gdb-attach-reset" value="1" checked>
+								<label for="gdb-attach-reset">
+									Reset Target
+								</label>
+							<input type="radio" id="gdb-attach-halt" name="gdb-attach-halt" value="0">
+								<label for="gdb-attach-halt">
+									Halt Target
+								</label>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Single Step</strong>
+								<span class="tooltiptext">
+										When single-stepping (step, stepi, next, nexti), you can choose whether
+										or not to permit new hardware interrupts to change the flow of execution.
+										The default setting prevents the flow of execution changing unexpectedly,
+										and is recommended for most use cases. If permitted, the flow of execution
+										can change mid-step if a new interrupt arrives. Use this setting only if
+										you know what you are doing!
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="radio" id="gdb-step-mask" name="gdb-stepmask" value="1" checked>
+								<label for="gdb-step-mask">
+									Prevent Interrupts
+								</label>
+							<input type="radio" id="gdb-step-unmask" name="gdb-stepmask" value="0">
+								<label for="gdb-step-unmask">
+									Permit Interrupts
+								</label>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Exception Catch</strong>
+								<span class="tooltiptext">
+									This setting configures which Cortex-M error exceptions to catch when the target
+									is running under the debugger. These exceptions are usually indicative of a
+									firmware crash so, in most cases, it is best to leave them all selected so that
+									the debugger will regain control. However, some developers may wish to hook one
+									or more of these exceptions to implement their own error recover in the firmware.
+									In such a case, you can deselect the relevant exceptions here. It is recommended
+									that, at the very least, you keep HardFault Exception selected unless you really
+									know what you are doing. Note that ARMv6-M devices, such as Cortex-M0, only
+									support the HardFault Exception; the other exceptions are not relevant.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select name="gdb-vcatch" id="gdb-vcatch" multiple size="8">
+								<option id="gdb-vc-none" value="vc-none">None
+								<option id="gdb-vc-harderr" value="vc-harderr">HardFault Exception
+								<option id="gdb-vc-interr" value="vc-interr">Exception Entry/Exit Fault
+								<option id="gdb-vc-buserr" value="vc-buserr">BusFault Exception
+								<option id="gdb-vc-staterr" value="vc-staterr">UsageFault: Bad State
+								<option id="gdb-vc-chkerr" value="vc-chkerr">UsageFault: Check Error
+								<option id="gdb-vc-nocperr" value="vc-nocperr">UsageFault: Coprocessor Access
+								<option id="gdb-vc-mmerr" value="vc-mmerr">MemManage Exception
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>SWD Settings
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>SWCLK Speed</strong>
+								<span class="tooltiptext">
+									Sets the SWD clock frequency used when communicating with a target. The best
+									value to use depends on both the target's capabilities and the quality
+									of the connection between it and Maven. The default is usually safe for
+									all devices. However, programming large Flash images will be slow.
+									Experiment to find the most suitable value for your particular target
+									device. Note that the listed clock frequencies are approximate.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="swd-speed" name="swd-speed">
+								<option value="1" id="swd-speed-1" name="swd-speed-1">
+								<option value="2" id="swd-speed-2" name="swd-speed-2">
+								<option value="3" id="swd-speed-3" name="swd-speed-3">
+								<option value="4" id="swd-speed-4" name="swd-speed-4">
+								<option value="5" id="swd-speed-5" name="swd-speed-5">
+								<option value="6" id="swd-speed-6" name="swd-speed-6">
+								<option value="7" id="swd-speed-7" name="swd-speed-7">
+								<option value="8" id="swd-speed-8" name="swd-speed-8">
+								<option value="9" id="swd-speed-9" name="swd-speed-9">
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Idle Cycles</strong>
+								<span class="tooltiptext">
+									Specifies the number of idle cycles inserted after completing an SWD
+									transaction. Legal values are 0 to 255. The default, zero, is suitable
+									for all supported targets. Changes to this setting take effect when
+									a target is first attached.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="number" id="swd-idlecycles" name="swd-idlecycles"
+							       min="0" max="255" value="0">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Turnaround</strong>
+								<span class="tooltiptext">
+									Specifies the number of clock cycles for the turnaround period when
+									changing the SWDIO pin between input and output. Note that not all
+									targets support changing this value. The status output of this command
+									will display a warning if the current target did not honour the
+									requested turnaround period. Legal values are 1 to 4. The default, 1,
+									is suitable for all supported targets. Changes to this setting take effect
+									when a target is first attached.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="swd-turnaround" name="swd-turnaround">
+								<option value="1">1
+								<option value="2">2
+								<option value="3">3
+								<option value="4">4
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lbutt">
+						<td class="rbutt">
+							<input type="submit" class="stdbutton" name="apply"
+							       value=" Save " onclick="submit_form('#debug-form', 'debug.cgi');">
+							<input type="reset" class="stdbutton" name="cancel"
+							       value="Cancel " onclick="debug_refresh();">
+				</table>
+			</form>
+		</div>
+
+		<div id="network" class="main-content">
+			<form id="network-form" action="javascript:">
+				<table cellspacing="0">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>WiFi Settings
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Network Name</strong>
+								<span class="tooltiptext">
+									This is the name of the WiFi network to which Maven will connect.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="text" size="32" maxlength="32" id="net-wifi-ssid" name="net-wifi-ssid">
+								(1 to 32 characters)
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Encryption Type</strong>
+								<span class="tooltiptext">
+									Specifies the type of encryption/security used by the WiFi network, if any.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<select id="net-wifi-security" name="net-wifi-security" onchange="network_wifi_sec_change()">
+								<option value="0">None
+								<option value="1">WPA/WPA2
+							</select>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Password</strong>
+								<span class="tooltiptext">
+									The password associated with the WiFi network.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="password" size="32" maxlength="64" id="net-wifi-pass" name="net-wifi-pass"
+								   onfocus="if(this.disabled)this.blur()">
+								(8 to 64 characters)
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="subhead" nowrap>Network Settings
+						<td class="rc" nowrap>&nbsp;
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Address Assignment</strong>
+								<span class="tooltiptext">
+									Maven's IPv4 address can be configured automatically via DHCP (the
+									recommended default) or by manually entering static address details.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="radio" id="net-ip-dhcp" name="net-ip-assignment" value="1"
+								   onclick="network_dhcp_update(true)" checked>
+								<label for="net-ip-dhcp">
+									DHCP
+								</label>
+							<input type="radio" id="net-ip-static" name="net-ip-assignment" value="0"
+								   onclick="network_dhcp_update(false)">
+								<label for="net-ip-static">
+									Static
+								</label>
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>DHCP Hostname</strong>
+								<span class="tooltiptext">
+									For DHCP address assignment, this optional field specifies a
+									name to send to the DHCP server. Some DHCP servers will add
+									this name to the DNS for your network. Valid characters for
+									a name are the letters 'a' to 'z', digits '0' to '9', and
+									the dash character '-'. Spaces are not permitted.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="text" size="32" maxlength="64" id="net-ip-hostname" name="net-ip-hostname" value="maven"
+								   pattern="^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$"
+								   onfocus="if(this.disabled)this.blur()">
+								(1 to 64 characters)
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>IP Address</strong>
+								<span class="tooltiptext">
+									Maven's static IPv4 address.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="text" id="net-ip-addr" name="net-ip-addr" value="192.168.0.100"
+								   disabled size="15" maxlength="15" minlength="7" required
+								   pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
+								   onfocus="if(this.disabled)this.blur()">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Address Mask</strong>
+								<span class="tooltiptext">
+									Mask associated with static IPv4 address.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="text" id="net-ip-mask" name="net-ip-mask" value="255.255.255.0"
+								   disabled size="15" maxlength="15" minlength="7" required
+								   pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
+								   onfocus="if(this.disabled)this.blur()">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lc" nowrap>
+							<div class="tooltip">
+								<strong>Gateway</strong>
+								<span class="tooltiptext">
+									Address of the network's default gateway/router. This field is optional;
+									leave it blank if Maven does not need to be accessible from other networks.
+								</span>
+							</div>
+						<td class="rc" nowrap>
+							<input type="text" id="net-ip-gate" name="net-ip-gate" value="192.168.0.1"
+								   disabled size="15" maxlength="15" minlength="7"
+								   pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
+								   onfocus="if(this.disabled)this.blur()">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="leftspacer">
+						<td class="rightspacer">
+					<tr>
+						<td class="lbutt">
+						<td class="rbutt">
+							<input type="submit" class="stdbutton" name="apply"
+							       value=" Save " onclick="submit_form('#network-form', 'network.cgi');">
+							<input type="reset" class="stdbutton" name="cancel"
+							       value="Cancel " onclick="network_refresh();">
+				</table>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script src="jquery.min.js"></script>
+<script src="maven.js"></script>
+<script>
+	function ready_function()
+	{
+		document.getElementById("defaultopen").click();
+		maven_details();
+		check_ping();
+	}
+
+	$( document ).ready( ready_function );
+</script>
+
+</body>
+</html>

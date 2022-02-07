@@ -1,0 +1,47 @@
+-===========================================-
+              Required Features
+-===========================================-
+0%	Support for multiple JTAG-DP TAPs, such as might be found on
+	boards with several SoCs, with their JTAG signals chained.
+
+0%	Tidy up the shell and its command line parsing. It's a mess.
+
+0%	Investigate ARMv8M stack limit exceptions. It's likely we're not
+	dealing with them very well, both on the debugger side and the
+	internal 'fatal trap' handler.
+
+0%	Use the new target event framework to update display and JSON.
+	In fact, generalise the event framework to become a system-wide
+	global event framework.
+
+0%	Announce firmware variant (AVR/ARM/...) on the display at startup.
+
+0%	Button press while in Provisioning mode should do something! As in,
+	disable the screensaver.
+
+99%	Fix network IP configuration. It's completely disorganised just now
+	as a result of the accumulation of backend drivers over the years.
+	So we need a better API which better reflects the diversity of
+	build options.
+
+
+-===========================================-
+               Nice to Have
+-===========================================-
+0%	Enhanced Multi-core support.
+	 - Symmetric SMP with identical (or near identical) cores.
+	   Single Gdb server instance, with thread support. Each core
+	   is treated as a separate thread.
+	 - Other SMP, either asymmetric or non-identical cores.
+	   A Gdb server instance per core, no thread support.
+
+0%	Read/Write via adiv5_mem_ap_setup_address() doesn't deal with DPs
+	which have fixed word-size transfers. We need a fallback for
+	those devices (which are probably old, but you never know).
+
+0%	Display driver re-write. Some thoughts:
+	 - Ditch u8g in favour of a framebuffer.
+	 - Replace u8g primitives/fonts with home-brewed bits.
+	 - Refresh entire display when necessary, using DMA direct from RAM.
+	 - Ditch the 'tap' code; it's vestigal anyway.
+

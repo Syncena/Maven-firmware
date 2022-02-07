@@ -1,0 +1,189 @@
+/*
+ * Copyright (c) 2022, Steve C. Woodford.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+Target device is SAM4S4A, LQFP48 package
+
+Power Consumption (powered by Vtarget @ 5 volts), no display:
+Idle and associated to AP:
+	No display:
+	Mean 123 mA, Max 250 mA
+
+	With display:
+	Mean 133 mA, Max 270 mA
+
+UART Rx at 57600 with active telnet:
+	No display:
+	Mean 150 mA, Max 430 mA (40uS/400mS spikes, mean duty cycle of ~15%)
+
+	With display:
+	Mean 160 mA, Max 464 mA (40uS/400mS spikes, mean duty cycle of ~15%)
+
+Programming current is broadly similar with much lower duty cycle.
+
+
+Peripheral Assignment
+========================================================
+UART0:	Target serial console
+UART1:	Debug console
+USART0:	ISP/PDI Programming Interface
+SPI:	WINC15000 and OLED display
+DMA:	SPI for WINC1500 data, maybe also for display if mutexes are fast
+AD0:	Target Voltage
+USB:	Two CDC end-points: Target programming interface, Target RS232 console
+
+Pin	Peripheral	Dir  Function
+========================================================
+PA0,B	TIMER0 TIOA0	Out: ISP CLK / JTAG ?
+PA1	GPIO		Out: OLED Display A0
+PA2,B	USART0 SCK0	Out: ISP/SWD RST / PDI CLK (GPIO mode for ISP/SWD RST)
+PA3	GPIO		Out: OLED Display /CS
+PA4	GPIO		Out: ISP SCK/SWD Data Direction
+PA5,A	USART0 RxD0	 In: ISP MISO / PDI Data RxD / SWD SWO
+PA6,A	USART0 TxD0	Out: ISP MOSI / PDI Data TxD / SWD CLK
+PA7	GPIO		Out: ISP SCK / SWD Data
+PA8	GPIO		Out: ISP RST Direction / PDI SCK Direction
+PA9,A	UART0 URXD0	 In: Target RxD
+PA10,A	UART0 UTXD0	Out: Target TxD
+PA11	GPIO		Out: WINC1500 /CS
+PA12,A	SPI MISO	 In: WINC1500 MISO
+PA13,A	SPI MOSI	Out: WINC1500/OLED MOSI
+PA14,A	SPI SPCK	Out: WINC1500/OLED SCK
+PA15	GPIO		Out: Target TxD Direction
+PA16	GPIO		Out: ISP CLK Direction
+PA17,X	ADC AD0		 In: Target Voltage
+PA18	GPIO		Out: ISP MISO / PDI RxD / SWD SWO Direction
+PA19	GPIO		Out: ISP MOSI / PDI TxD / SWD CLK Direction
+PA20	GPIO		Out: Target RxD Direction
+
+Pin	Peripheral	Dir  Function
+========================================================
+PB0	GPIO		 In: WINC1500 /IRQ
+PB1	GPIO		 In: WINC1500 / OLED /RST
+PB2,A	UART1 URXD1	 In: Debug Console RxD
+PB3,A	UART1 UTXD1	Out: Debug Console TxD
+PB4	GPIO		Out: ISP PDI Output Enable
+PB5,S	SWO		n/a: SWD connector
+PB6,S	SWDIO		n/a: SWD connector
+PB7,S	SWCLK		n/a: SWD connector
+PB8,S	XOUT		Out: 12MHz crystal
+PB9,S	XIN		 In: 12MHz crystal
+PB10,X	USB DDM		     USB connector
+PB11,X	USB DDP		     USB connector
+PB12	GPIO		Out: WINC1500 EN (Note: pull-down resistor)
+
+WINC1500 GPIO Pins
+GPIO	Dir	Function
+========================================================
+GPIO-3	Out	Orange LED - Network activity (active low)
+GPIO-4	Out	Green LED - Network associated (active low)
+GPIO-6	 In	Provision button (active low)
+
+Non-Programming Mode Pin Assignments
+====================================
+ISP:	PA0	GPIO or Timer 0 Compare/Match A (TIOA0)
+	PA5	GPIO
+	PA6	GPIO or Programmable Clock Output 0 (PCK0)
+	PA7	GPIO or PWM output (PWMH3)
+	PA9	GPIO (If Target RxD not required)
+	PA10	GPIO (If Target TxD not required)
+
+PDI:	PA0	GPIO or Timer 0 Compare/Match A (TIOA0)
+	PA6	GPIO or Programmable Clock Output 0 (PCK0)
+	PA7	GPIO or PWM output (PWMH3)
+	PA9	GPIO (If Target RxD not required)
+	PA10	GPIO (If Target TxD not required)
+
+
+Debug Console Pinout
+====================
+  E  O 1	RxD
+  d  O 2	TxD
+  g  O 3	n/c
+  e  O 4	Gnd
+
+Debug Header Pinout	Header	ICE Pin	Description
+===================================================
+    Edge Of Board	1	6	SWO		n/c
+	2 4 6		2	1	Vcc		Red	Connect to ERASE to clear Flash
+	O O O		3	2	SWDIO		Yello
+	O O O		4	4	SWCLK		Orange
+	1 3 5		5	10	/RST		White
+			6	3/5	Gnd		Black
+
+Board Version 1.1:
+==================================================================================================================
+    Edge Of Board	1	PA5,A	MISO		PDI Data	uPDI Tx/Rx	SWO		TDO
+     2 4 6 8 10		2	PA17	Target Vcc	Target Vcc	Target Vcc	Target Vcc	Target Vcc
+     O O O O O		3	PA7,A	SCK		Unused		Unused		SWDIO		TMS
+     O O O O O		4	PA6,A	MOSI		Unused		Unused		SWCLK		TCK
+     1 3 5 7 9		5	PA2,B	Reset		PDI CLK		Unused		nRST		nRST
+     			6		Gnd		Gnd		Gnd		Gnd		Gnd
+			7	PB3,A	Debug TxD	Debug TxD	Debug TxD	Debug TxD	Debug TxD
+			8	PA0,A	Clock		Unused		Unused		Unused		TDI
+			9	PB2,A	Debug RxD	Debug RxD	Debug RxD	Debug RxD	Debug RxD
+     			10		Gnd		Gnd		Gnd		Gnd		Gnd
+
+Board Version 1.0:
+Target Header Pinout	Pin	ISP Mode	PDI Mode
+========================================================
+    Edge Of Board	1	MISO		PDI Data
+     2 4 6 8 10		2	Target Vcc	Target Vcc
+     O O O O O		3	SCK		Unused
+     O O O O O		4	MOSI		Unused
+     1 3 5 7 9		5	Reset		PDI CLK
+     			6	Gnd		Gnd
+			7	Debug TxD	Debug TxD
+     			8	Gnd		Gnd
+			9	Debug RxD	Debug RxD
+			10	Clock		Unused
+
+Display Header
+==============
+  Top Of Board
+     O 7	/Chip-Select	Green
+     O 6	Command/Data	Yellow
+     O 5	/RST
+     O 4	SPI MOSI	Orange
+     O 3	SPI CLK		White
+     O 2	Vcc		Red
+     O 1	Gnd		Black
+
+
+Wiz W5500 Mod
+=============
+Red	3.3v
+Black	Gnd
+Purple	MISO
+Blue	MOSI
+Green	/CS
+White	SCK
+Yellow	/IRQ
+Orange	/RST

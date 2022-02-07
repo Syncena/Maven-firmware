@@ -1,0 +1,128 @@
+##############################################################################
+#
+# Copyright (c) 2022, Steve C. Woodford.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+# THE POSSIBILITY OF SUCH DAMAGE.
+#
+##############################################################################
+
+CMSIS		:= 3rdparty/CMSIS/cmsis_gcc.h
+CMSISv7		:= 3rdparty/CMSIS/core_cm4.h
+CMSISv7		+= 3rdparty/CMSIS/mpu_armv7.h
+CMSISv8		:= 3rdparty/CMSIS/core_cm33.h
+CMSISv8		:= 3rdparty/CMSIS/core_armv8mml.h
+CMSISv8		+= 3rdparty/CMSIS/mpu_armv8.h
+
+FREERTOS	:= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/list.c
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/queue.c
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/tasks.c
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/timers.c
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/FreeRTOS.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/StackMacros.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/atomic.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/deprecated_definitions.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/event_groups.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/list.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/message_buffer.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/portable.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/projdefs.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/queue.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/semphr.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/stack_macros.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/stream_buffer.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/task.h
+FREERTOS	+= 3rdparty/FreeRTOS/FreeRTOS-Kernel-10.4.4/include/timers.h
+
+TOMCRYPT	:= 3rdparty/TomCrypt/libtomcrypt/src
+
+ATMEL_USB	:= 3rdparty/atmel-usb
+
+TINY_USB	:= 3rdparty/tinyusb/tusb_config.h
+TINY_USB	+= 3rdparty/tinyusb/tusb_os_custom.h
+TINY_USB	+= 3rdparty/tinyusb/usb_cdc.c
+TINY_USB	+= 3rdparty/tinyusb/usb_cdc.h
+TINY_USB	+= 3rdparty/tinyusb/usb_common.c
+TINY_USB	+= 3rdparty/tinyusb/usb_common.h
+TINY_USB	+= 3rdparty/tinyusb/dist/src/tusb.c
+TINY_USB	+= 3rdparty/tinyusb/dist/src/tusb.h
+TINY_USB	+= 3rdparty/tinyusb/dist/src/tusb_option.h
+TINY_USB	+= 3rdparty/tinyusb/dist/src/class/cdc
+TINY_USB	+= 3rdparty/tinyusb/dist/src/common
+TINY_USB	+= 3rdparty/tinyusb/dist/src/device
+TINY_USB_SAMD	:= 3rdparty/tinyusb/dist/src/portable/microchip/samd
+TINY_USB_LPC55	:= 3rdparty/tinyusb/dist/src/portable/nxp/lpc_ip3511/dcd_lpc_ip3511.c
+
+FIXMATH		:= 3rdparty/libfixmath/FixMath/libfixmath/fix16.c
+FIXMATH		+= 3rdparty/libfixmath/FixMath/libfixmath/fix16_str.c
+FIXMATH		+= 3rdparty/libfixmath/FixMath/libfixmath/fix16.h
+
+U8GLIB		:= 3rdparty/u8glib/src
+
+COMMON		:= common network $(CMSIS) $(FREERTOS) $(TOMCRYPT) $(FIXMATH) $(U8GLIB) $(TINY_USB)
+
+LWIP		:= 3rdparty/lwip/lwip-2.1.2/src/core
+LWIP		+= 3rdparty/lwip/lwip-2.1.2/src/include
+LWIP		+= 3rdparty/lwip/lwip-2.1.2/src/apps/http/fs.c
+LWIP		+= 3rdparty/lwip/lwip-2.1.2/src/apps/http/httpd.c
+LWIP		+= 3rdparty/lwip/lwip-2.1.2/src/apps/http/httpd_structs.h
+
+SAMD51		:= 3rdparty/samd51/samd51j20a.h
+SAMD51		+= 3rdparty/samd51/component
+SAMD51		+= 3rdparty/samd51/instance
+SAMD51		+= 3rdparty/samd51/pio/samd51j20a.h
+SAMD51		+= $(CMSISv7)
+
+LPC55S69	:= 3rdparty/NXP/lpc55s69
+LPC55S69	+= $(CMSISv8)
+
+WILC1000	:= 3rdparty/wilc1000
+WINC1500	:= 3rdparty/winc1500
+
+AVR		:= avr
+
+CORTEXM		:= cortexm
+
+GDB		:= gdb
+GDB		+= target
+
+WAVR		:= platform/wavr-SAM4S platform/arm
+
+MAVEN		:= platform/Maven-SAMD51 platform/arm
+MAVEN		+= platform/Shared/SAMD5E5
+
+MCULINK		:= platform/MCULink platform/arm
+MCULINK		+= platform/Shared/LPC55S6x
+
+all:	maven_cortex
+
+maven_cortex:
+	-rm -f tags
+	ctags -R $(MAVEN) $(SAMD51) $(GDB) $(CORTEXM) $(WILC1000) $(COMMON) $(LWIP) $(TINY_USB_SAMD)
+
+mculink:
+	-rm -f tags
+	ctags -R $(MCULINK) $(LPC55S69) $(GDB) $(CORTEXM) $(COMMON) $(TINY_USB_LPC55)

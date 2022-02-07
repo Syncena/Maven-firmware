@@ -38,4 +38,40 @@ Cortex-M core. These can be used to halt execution when firmware accesses
 specific memory addresses, and are an invaluable tool to help track down
 memory corruption and/or use-after-free type bugs.
 
+# Building Maven firmware from source
+You'll need the [ARM toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm)
+together with a reasonably recent version of Gnu make to build the Maven firmware.
 
+You'll also need to build tools/makefsdata if you update the html source
+in src/network/http/html.
+
+Makefiles are provided to build Maven firmware for a number of targets
+and configurations. For example:
+
+```
+$ cd build/wAVR/cortexm
+$ make
+```
+
+The above will create a debug firmware image for the original wAVR/Maven
+hardware. Alternatively:
+
+```
+$ cd build/MCULink/cortexm
+$ make
+```
+
+The above will create a debug firmware image for the NXP MCULink
+debug probe.
+
+Note that the author's development environment is MacOS. Your mileage may
+vary when building on another platform.
+
+# Maven on MCU-Link
+The MCU-Link hardware from NXP is a small USB debug probe whose firmware
+implements the usual CMSIS-DAP protocol. This is probably the best
+device with which to start playing with Maven firmware as it is very
+easy to replace its default firmware image.
+
+See build/MCULink/README.txt for information on how to replace the stock
+firmware with Maven.

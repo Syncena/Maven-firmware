@@ -1,4 +1,4 @@
-MAKEFSDATA = ../../../tools/makefsdata/makefsdata "-svr:Maven (https://www.maverick-embedded.co.uk/)"
+MAKEFSDATA = ../../../../tools/makefsdata/makefsdata "-svr:Maven (https://www.maverick-embedded.co.uk/)"
 SRCS	:= app_fsdata.c assets_fsdata.c provision_fsdata.c
 
 all:	$(SRCS)

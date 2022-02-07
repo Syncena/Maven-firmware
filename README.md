@@ -1,12 +1,12 @@
 # Maven-firmware
 
-Maven WiFi/USB GDB Server Firmware
+Maven/wAVR WiFi and USB Debug Probe Firmware
 
-The Maven Programmer/Debugger was a small WiFi-enabled in-system programming
+The Maven Programmer/Debugger is a small WiFi-enabled in-system programming
 and debugging device for ARM Cortex-M micro-controllers originally designed
 by Maverick Embedded Technology Ltd. In early 2022, the decision was made to
 Open-Source the firmware for the device. The hardware design(s) will also
-release soon.
+released in due course.
 
 Numerous significant features set Maven apart from other ARM programmers/debuggers:
 - Built-in GDB server accessible over USB or WiFi means Maven works with any host system which can run GDB for ARM.
@@ -42,8 +42,8 @@ memory corruption and/or use-after-free type bugs.
 You'll need the [ARM toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm)
 together with a reasonably recent version of Gnu make to build the Maven firmware.
 
-You'll also need to build tools/makefsdata if you update the html source
-in src/network/http/html.
+You'll also need to build `tools/makefsdata` if you update the html source
+in `src/network/http/html`.
 
 Makefiles are provided to build Maven firmware for a number of targets
 and configurations. For example:
@@ -73,5 +73,11 @@ implements the usual CMSIS-DAP protocol. This is probably the best
 device with which to start playing with Maven firmware as it is very
 easy to replace its default firmware image.
 
-See build/MCULink/README.txt for information on how to replace the stock
+See `build/MCULink/README.txt` for information on how to replace the stock
 firmware with Maven.
+
+# AVR Programming
+Maven started life as a WiFi programmer for AVR devices, working in
+conjunction with [avrdude](https://github.com/avrdudes/avrdude). This
+version of the firmware can be built using the `build/wAVR/avr` or
+`build/Maven3/avr`.

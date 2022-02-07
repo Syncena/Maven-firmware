@@ -79,5 +79,5 @@ firmware with Maven.
 # AVR Programming
 Maven started life as a WiFi programmer for AVR devices, working in
 conjunction with [avrdude](https://github.com/avrdudes/avrdude). This
-version of the firmware can be built using the `build/wAVR/avr` or
-`build/Maven3/avr`.
+version of the firmware can be built using the Makefiles in `build/wAVR/avr`
+and `build/Maven3/avr`.

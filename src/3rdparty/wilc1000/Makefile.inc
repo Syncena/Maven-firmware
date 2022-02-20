@@ -33,7 +33,6 @@
 EXTRAINCDIRS	+= $(WILC1000_PATH)
 WILC1000_OBJDIR	:= $(OBJDIR)/wilc1000
 
-ifndef MK_INCLUDE_PREBOOT
 WILC1000_SRCS	:=					\
 	${WILC1000_PATH}/driver/source/m2m_hif.c	\
 	${WILC1000_PATH}/driver/source/m2m_periph.c	\
@@ -45,4 +44,3 @@ WILC1000_SRCS	:=					\
 	${WILC1000_PATH}/common/source/nm_common.c
 
 $(foreach t,$(WILC1000_SRCS),$(eval $(call make-rule-c,$(WILC1000_OBJDIR),$(t))))
-endif

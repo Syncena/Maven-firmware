@@ -34,7 +34,6 @@ EXTRAINCDIRS	+= $(COMMON_PATH)
 
 COMMON_OBJDIR	:= $(OBJDIR)/common
 
-ifndef MK_INCLUDE_PREBOOT
 COMMON_SRCS	:=				\
 	$(COMMON_PATH)/bitmap.c			\
 	$(COMMON_PATH)/console.c		\
@@ -54,7 +53,6 @@ COMMON_SRCS	:=				\
 	$(COMMON_PATH)/twiddle.c		\
 	$(COMMON_PATH)/uart.c			\
 	$(COMMON_PATH)/zone_alloc.c
-endif
 
 ifdef MK_INCLUDE_CONFIGDB
 DEFINES		+= -DCONFIG_USE_CONFIGDB=1

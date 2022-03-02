@@ -189,6 +189,9 @@ static void * pvMalloc( Zone_t xZone, size_t xWantedSize )
     BlockLink_t * pxBlock, * pxPreviousBlock, * pxNewBlockLink;
     void * pvReturn = NULL;
 
+    if ( xZone == NULL )
+        xZone = prxHeapZone;
+
     vLockZone( xZone );
     {
         /* Check the requested block size is not so large that the top bit is

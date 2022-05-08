@@ -2396,14 +2396,19 @@ cortexm_icache_sync(cortexm_t cm, target_addr_t addr, uint32_t len)
 	target_addr_t start_addr, end_addr;
 	uint32_t imin, reg;
 
-	if ((cm->cm_ccr & CMSCS_CCR_IC) == 0)
+	if ((cm->cm_ccr & CMSCS_CCR_IC) == 0) {
+		DBFPRINTF("No IC\n");
 		return;
+	}
 
 	imin = 4 << CMSCS_CTR_IMINLINE(cm->cm_ctr);
 	start_addr = addr & ~((target_addr_t)imin - 1);
-	end_addr = start_addr + len;
+	end_addr = addr + len;
 	end_addr = (end_addr + ((target_addr_t)imin - 1)) &
 	    ~((target_addr_t)imin - 1);
+
+	DBFPRINTF("start_addr 0x%" PRIxTADDR ", end_addr 0x%" PRIxTADDR
+	    ", imin 0x%" PRIx32 "\n", start_addr, end_addr, imin);
 
 	while (start_addr < end_addr) {
 		reg = (uint32_t) start_addr;
@@ -2425,15 +2430,21 @@ cortexm_dcache_clean(cortexm_t cm, target_addr_t addr, uint32_t len, bool inv)
 	target_addr_t start_addr, end_addr;
 	uint32_t dmin, reg, op;
 
-	if ((cm->cm_ccr & CMSCS_CCR_DC) == 0)
+	if ((cm->cm_ccr & CMSCS_CCR_DC) == 0) {
+		DBFPRINTF("No DC\n");
 		return;
+	}
 
 	dmin = 4 << CMSCS_CTR_DMINLINE(cm->cm_ctr);
 	start_addr = addr & ~((target_addr_t)dmin - 1);
-	end_addr = start_addr + len;
+	end_addr = addr + len;
 	end_addr = (end_addr + ((target_addr_t)dmin - 1)) &
 	    ~((target_addr_t)dmin - 1);
 	op = inv ? CMSCS_REG_DCCIMVAC : CMSCS_REG_DCCMVAC;
+
+	DBFPRINTF("start_addr 0x%" PRIxTADDR ", end_addr 0x%" PRIxTADDR
+	    ", dmin 0x%" PRIx32 ", op 0x%" PRIx32 ", inv %u\n", start_addr,
+	    end_addr, dmin, op, inv);
 
 	while (start_addr < end_addr) {
 		reg = (uint32_t) start_addr;
@@ -2445,6 +2456,9 @@ cortexm_dcache_clean(cortexm_t cm, target_addr_t addr, uint32_t len, bool inv)
 static void
 cortexm_sync_cache(cortexm_t cm, target_addr_t addr, uint32_t len, bool iswr)
 {
+
+	DBFPRINTF("addr 0x%" PRIxTADDR ", len %" PRIu32 ", iswr %u\n", addr,
+	    len, iswr);
 
 	if (len == 0)
 		return;
@@ -2483,6 +2497,7 @@ cortexm_sync_cache(cortexm_t cm, target_addr_t addr, uint32_t len, bool iswr)
 		break;
 
 	default:
+		DBFPRINTF("No cache\n");
 		break;
 	}
 }

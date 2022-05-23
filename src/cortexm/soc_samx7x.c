@@ -29,6 +29,7 @@
  */
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -114,7 +115,7 @@ static const struct sam_id samx7x_ids[] = {
 
 struct samx7x_state {
 	void *ss_flash_ctx;
-	int ss_has_tcm;
+	bool ss_has_tcm;
 };
 
 static int
@@ -287,38 +288,38 @@ soc_samx7x_attach(target_t t)
 	if ((ss = zone_calloc(1, sizeof(*ss))) == NULL)
 		return CORTEXM_SOC_ATTACH_NO_MATCH;
 
-	if (sram_size >= (256u * 1024u)) {
-		/*
-		 * 256KB and 384KB variants have ITCM and DTCM available,
-		 * depending on GPNVM bits 7 & 8.
-		 */
-		ss->ss_has_tcm = 1;
+	/*
+	 * 256KB and 384KB variants have ITCM and DTCM available,
+	 * depending on GPNVM bits 7 & 8.
+	 */
+	ss->ss_has_tcm = sram_size >= (256u * 1024u);
 
-		/* A single Flash plane */
-		flash_planes[0] = SAMX7x_FLASH_BASE;
-		flash_planes[1] = SAM_EFC_FLASH_BASE_INVALID;
+	/* A single Flash plane */
+	flash_planes[0] = SAMX7x_FLASH_BASE;
+	flash_planes[1] = SAM_EFC_FLASH_BASE_INVALID;
 
-		/* Attach Flash temporarily - we need it to fetch GPNVM bits */
-		ss->ss_flash_ctx = flash_sam_efc_attach(t,
-		    flash_planes, SAMX7x_EEFC_BASE, SAMX7x_EEFC_OFFSET,
-		    SAMX7X_WAIT_STATES, 0, 0);
+	/* Attach the Flash */
+	ss->ss_flash_ctx = flash_sam_efc_attach(t, flash_planes,
+	    SAMX7x_EEFC_BASE, SAMX7x_EEFC_OFFSET, SAMX7X_WAIT_STATES, 0, 1);
 
-		if (ss->ss_flash_ctx == NULL) {
-			/*
-			 * This can happen if the ERASE pin is tied to Vcc,
-			 * or the security bit is set.
-			 * Not much we can do.
-			 */
-		} else {
+	if (ss->ss_flash_ctx != NULL) {
+		if (ss->ss_has_tcm) {
 			int bit = flash_sam_efc_gpnvm(ss->ss_flash_ctx,
 			    FLASH_SAM_EFC_GPNVM_QUERY);
-			flash_sam_efc_detach(ss->ss_flash_ctx);
 
 			if (bit >= 0) {
 				tcm_size = 0x8000u * ((bit >> 7) & 3);
 				sram_size -= tcm_size * 2u;
 			}
 		}
+
+		SHELL_CMD_ADD_CTX(gpnvm, ss);
+	} else {
+		/*
+		 * This can happen if the ERASE pin is tied to Vcc,
+		 * or the security bit is set.
+		 * Not much we can do.
+		 */
 	}
 
 	/* All devices have a Boot ROM */
@@ -326,9 +327,9 @@ soc_samx7x_attach(target_t t)
 	    SAMX7x_ROM_SIZE, "SAM-BA ROM");
 
 	/*
-	 * Stir in SRAM, if there's any remaining after accounting for TCM.
+	 * Add SRAM, if there's any remaining after accounting for TCM.
 	 * XXX: There is a bug lurking *somewhere* which prevents us using the
-	 * Flash Applet to program Flash. So mark RAM as unavailable for them.
+	 * Flash applet. Disable applet support for now.
 	 */
 	if (sram_size) {
 		target_add_memory(t, TARGET_MEM_RAM | TARGET_MEM_NO_APPLET,
@@ -344,17 +345,6 @@ soc_samx7x_attach(target_t t)
 		target_add_memory(t, TARGET_MEM_RAM | TARGET_MEM_NO_APPLET,
 		    SAMX7x_DTCM_BASE, tcm_size, "DTCM");
 	}
-
-	/* A single Flash plane */
-	flash_planes[0] = SAMX7x_FLASH_BASE;
-	flash_planes[1] = SAM_EFC_FLASH_BASE_INVALID;
-
-	/* Attach the Flash */
-	ss->ss_flash_ctx = flash_sam_efc_attach(t, flash_planes,
-	    SAMX7x_EEFC_BASE, SAMX7x_EEFC_OFFSET, SAMX7X_WAIT_STATES, 0, 1);
-
-	if (ss->ss_flash_ctx != NULL)
-		SHELL_CMD_ADD_CTX(gpnvm, ss);
 
 	cm = (cortexm_t)t->t_core;
 	cm->cm_soc = ss;

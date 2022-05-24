@@ -51,7 +51,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-.swp
+*.swp
 .dep
 .gdb_history
 .gdbinit

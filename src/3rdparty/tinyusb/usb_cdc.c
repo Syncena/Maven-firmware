@@ -139,11 +139,11 @@ static tusb_desc_device_t desc_device = {
 enum {
 	ITF_NUM_CDC_0 = 0,
 	ITF_NUM_CDC_0_DATA,
-#if (CFG_TUD_CDC > 0)
+#if (CFG_TUD_CDC > 1)
 	ITF_NUM_CDC_1,
 	ITF_NUM_CDC_1_DATA,
 #endif
-#if (CFG_TUD_CDC > 1)
+#if (CFG_TUD_CDC > 2)
 	ITF_NUM_CDC_2,
 	ITF_NUM_CDC_2_DATA,
 #endif
@@ -154,11 +154,11 @@ enum {
 
 #define EPNUM_CDC_0_NOTIF   0x81u
 #define EPNUM_CDC_0_DATA    0x02u
-#if (CFG_TUD_CDC > 0)
+#if (CFG_TUD_CDC > 1)
 #define EPNUM_CDC_1_NOTIF   0x83u
 #define EPNUM_CDC_1_DATA    0x04u
 #endif
-#if (CFG_TUD_CDC > 1)
+#if (CFG_TUD_CDC > 2)
 #define EPNUM_CDC_2_NOTIF   0x85u
 #define EPNUM_CDC_2_DATA    0x06u
 #endif
@@ -184,11 +184,11 @@ static uint8_t const desc_fs_configuration[] = {
 	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8,
 	    EPNUM_CDC_0_DATA, 0x80 | EPNUM_CDC_0_DATA, 64),
 
-#if (CFG_TUD_CDC > 0)
+#if (CFG_TUD_CDC > 1)
 	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4, EPNUM_CDC_1_NOTIF, 8,
 	    EPNUM_CDC_1_DATA, 0x80 | EPNUM_CDC_1_DATA, 64),
 #endif
-#if (CFG_TUD_CDC > 1)
+#if (CFG_TUD_CDC > 2)
 	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_2, 4, EPNUM_CDC_2_NOTIF, 8,
 	    EPNUM_CDC_2_DATA, 0x80 | EPNUM_CDC_2_DATA, 64),
 #endif
@@ -211,11 +211,11 @@ static uint8_t const desc_hs_configuration[] = {
 	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8,
 	    EPNUM_CDC_0_DATA, 0x80 | EPNUM_CDC_0_DATA, 512),
 
-#if (CFG_TUD_CDC > 0)
+#if (CFG_TUD_CDC > 1)
 	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4, EPNUM_CDC_1_NOTIF, 8,
 	    EPNUM_CDC_1_DATA, 0x80 | EPNUM_CDC_1_DATA, 512),
 #endif
-#if (CFG_TUD_CDC > 1)
+#if (CFG_TUD_CDC > 2)
 	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_2, 4, EPNUM_CDC_2_NOTIF, 8,
 	    EPNUM_CDC_2_DATA, 0x80 | EPNUM_CDC_2_DATA, 512),
 #endif

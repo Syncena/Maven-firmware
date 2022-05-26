@@ -181,15 +181,18 @@ static uint8_t const desc_fs_configuration[] = {
 	 * and size, EP data address (out, in) and size.
 	 */
 
-	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8,
+	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4,
+	    EPNUM_CDC_0_NOTIF, CFG_TUD_CDC_EP_NOTIF_BUFSIZE,
 	    EPNUM_CDC_0_DATA, 0x80 | EPNUM_CDC_0_DATA, 64),
 
 #if (CFG_TUD_CDC > 1)
-	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4, EPNUM_CDC_1_NOTIF, 8,
+	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4,
+	    EPNUM_CDC_1_NOTIF, CFG_TUD_CDC_EP_NOTIF_BUFSIZE,
 	    EPNUM_CDC_1_DATA, 0x80 | EPNUM_CDC_1_DATA, 64),
 #endif
 #if (CFG_TUD_CDC > 2)
-	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_2, 4, EPNUM_CDC_2_NOTIF, 8,
+	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_2, 4,
+	    EPNUM_CDC_2_NOTIF, CFG_TUD_CDC_EP_NOTIF_BUFSIZE,
 	    EPNUM_CDC_2_DATA, 0x80 | EPNUM_CDC_2_DATA, 64),
 #endif
 };
@@ -208,15 +211,18 @@ static uint8_t const desc_hs_configuration[] = {
 	 * and size, EP data address (out, in) and size.
 	 */
 
-	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8,
+	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4,
+	    EPNUM_CDC_0_NOTIF, CFG_TUD_CDC_EP_NOTIF_BUFSIZE,
 	    EPNUM_CDC_0_DATA, 0x80 | EPNUM_CDC_0_DATA, 512),
 
 #if (CFG_TUD_CDC > 1)
-	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4, EPNUM_CDC_1_NOTIF, 8,
+	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4,
+	    EPNUM_CDC_1_NOTIF, CFG_TUD_CDC_EP_NOTIF_BUFSIZE,
 	    EPNUM_CDC_1_DATA, 0x80 | EPNUM_CDC_1_DATA, 512),
 #endif
 #if (CFG_TUD_CDC > 2)
-	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_2, 4, EPNUM_CDC_2_NOTIF, 8,
+	TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_2, 4,
+	    EPNUM_CDC_2_NOTIF, CFG_TUD_CDC_EP_NOTIF_BUFSIZE,
 	    EPNUM_CDC_2_DATA, 0x80 | EPNUM_CDC_2_DATA, 512),
 #endif
 };
@@ -543,10 +549,8 @@ usb_cdc_tx_ready(ringbuff_t rb, void *arg)
 	 * Schedule a callback in the USB task's context if we're invoked
 	 * from interrupt mode. Otherwise, we can kick it off immediately.
 	 */
-	if (_rtos_interrupt_context())
-		usbd_defer_func(usb_cdc_tx_ready_callback, ucs, true);
-	else
-		usb_cdc_tx_ready_callback(ucs);
+	usbd_defer_func(usb_cdc_tx_ready_callback, ucs,
+	    _rtos_interrupt_context());
 }
 
 void *
@@ -806,6 +810,8 @@ tud_cdc_line_state_cb(uint8_t instance, bool dtr, bool rts)
 	assert(ucs->ucs_instance == instance);
 
 	DBFPRINTF("Instance %u: DTR %u, RTS %u\n", instance, dtr, rts);
+
+	tud_cdc_n_notify_serial_state(ucs->ucs_instance, true, true);
 
 	rtos_mutex_acquire(ucs->ucs_mutex);
 

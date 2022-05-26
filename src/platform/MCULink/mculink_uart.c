@@ -54,7 +54,7 @@ HAL_GPIO_PIN(VCOM_DISABLE, 0, 18)
 HAL_GPIO_PIN(CONSOLE_TX, 0, 10)
 #define	MCULINK_CONSOLE_TX_FUNCTION	6
 #define	MCULINK_CONSOLE_TX_ITM_PORT	0u
-#define	MCULINK_CONSOLE_TX_BAUD		1000000u
+#define	MCULINK_CONSOLE_TX_BAUD		115200u
 
 static void
 dummy_uart_tx_avail_cb(ringbuff_t rb, void *arg)

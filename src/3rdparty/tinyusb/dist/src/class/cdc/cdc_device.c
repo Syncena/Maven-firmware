@@ -68,6 +68,7 @@ typedef struct
   // Endpoint Transfer buffer
   CFG_TUSB_MEM_ALIGN uint8_t epout_buf[CFG_TUD_CDC_EP_BUFSIZE];
   CFG_TUSB_MEM_ALIGN uint8_t epin_buf[CFG_TUD_CDC_EP_BUFSIZE];
+  CFG_TUSB_MEM_ALIGN uint8_t epnotif_buf[CFG_TUD_CDC_EP_NOTIF_BUFSIZE];
 
 }cdcd_interface_t;
 
@@ -117,6 +118,28 @@ bool tud_cdc_n_connected(uint8_t itf)
 uint8_t tud_cdc_n_get_line_state (uint8_t itf)
 {
   return _cdcd_itf[itf].line_state;
+}
+
+bool tud_cdc_n_notify_serial_state (uint8_t itf, bool dsr, bool dcd)
+{
+  cdcd_interface_t* p_cdc = &_cdcd_itf[itf];
+  tusb_control_request_t request =
+  {
+    .bmRequestType_bit.recipient  = TUSB_REQ_RCPT_INTERFACE,
+    .bmRequestType_bit.type       = TUSB_REQ_TYPE_CLASS,
+    .bmRequestType_bit.direction  = TUSB_DIR_IN,
+    .bRequest                     = SERIAL_STATE,
+    .wValue                       = 0,
+    .wIndex                       = p_cdc->itf_num,
+    .wLength                      = 2
+  };
+  uint16_t len = sizeof(request);
+
+  memcpy(p_cdc->epnotif_buf, &request, len);
+  p_cdc->epnotif_buf[len++] = (dsr ? 2 : 0) | (dcd ? 1 : 0);
+  p_cdc->epnotif_buf[len++] = 0;
+
+  return usbd_edpt_xfer(TUD_OPT_RHPORT, p_cdc->ep_notif, p_cdc->epnotif_buf, len);
 }
 
 void tud_cdc_n_get_line_coding (uint8_t itf, cdc_line_coding_t* coding)
@@ -426,7 +449,7 @@ bool cdcd_xfer_cb(uint8_t rhport, uint8_t ep_addr, xfer_result_t result, uint32_
   for (itf = 0; itf < CFG_TUD_CDC; itf++)
   {
     p_cdc = &_cdcd_itf[itf];
-    if ( ( ep_addr == p_cdc->ep_out ) || ( ep_addr == p_cdc->ep_in ) ) break;
+    if ( ( ep_addr == p_cdc->ep_out ) || ( ep_addr == p_cdc->ep_in ) || ( ep_addr == p_cdc->ep_notif ) ) break;
   }
   TU_ASSERT(itf < CFG_TUD_CDC);
 

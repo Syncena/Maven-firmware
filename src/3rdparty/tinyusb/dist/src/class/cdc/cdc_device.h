@@ -43,6 +43,11 @@
   #define CFG_TUD_CDC_EP_BUFSIZE    (TUD_OPT_HIGH_SPEED ? 512 : 64)
 #endif
 
+// XXX SCW: Interrupt Endpoint Buffer Size
+#ifndef CFG_TUD_CDC_EP_NOTIF_BUFSIZE
+  #define CFG_TUD_CDC_EP_NOTIF_BUFSIZE  16
+#endif
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -65,6 +70,9 @@ uint8_t  tud_cdc_n_get_line_state  (uint8_t itf);
 
 // Get current line encoding: bit rate, stop bits parity etc ..
 void     tud_cdc_n_get_line_coding (uint8_t itf, cdc_line_coding_t* coding);
+
+// Notify host of current DSR/CDC status
+bool     tud_cdc_n_notify_serial_state(uint8_t itf, bool dsr, bool cdc);
 
 // Set special character that will trigger tud_cdc_rx_wanted_cb() callback on receiving
 void     tud_cdc_n_set_wanted_char (uint8_t itf, char wanted);
@@ -111,6 +119,7 @@ bool tud_cdc_n_write_clear (uint8_t itf);
 static inline bool     tud_cdc_connected       (void);
 static inline uint8_t  tud_cdc_get_line_state  (void);
 static inline void     tud_cdc_get_line_coding (cdc_line_coding_t* coding);
+static inline bool     tud_cdc_notify_serial_state(bool dsr, bool dcd);
 static inline void     tud_cdc_set_wanted_char (char wanted);
 
 static inline uint32_t tud_cdc_available       (void);
@@ -180,6 +189,11 @@ static inline uint8_t tud_cdc_get_line_state (void)
 static inline void tud_cdc_get_line_coding (cdc_line_coding_t* coding)
 {
   tud_cdc_n_get_line_coding(0, coding);
+}
+
+static inline bool tud_cdc_notify_serial_state(bool dsr, bool dcd)
+{
+  return tud_cdc_n_notify_serial_state(0, dsr, dcd);
 }
 
 static inline void tud_cdc_set_wanted_char (char wanted)

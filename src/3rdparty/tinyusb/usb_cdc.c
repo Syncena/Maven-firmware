@@ -811,7 +811,7 @@ tud_cdc_line_state_cb(uint8_t instance, bool dtr, bool rts)
 
 	DBFPRINTF("Instance %u: DTR %u, RTS %u\n", instance, dtr, rts);
 
-	tud_cdc_n_notify_serial_state(ucs->ucs_instance, true, true);
+	tud_cdc_n_notify_serial_state(ucs->ucs_instance, dtr, dtr);
 
 	rtos_mutex_acquire(ucs->ucs_mutex);
 

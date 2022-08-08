@@ -114,7 +114,7 @@ struct adiv5_ap_interface {
 	 * Read/Write a single 32-bit value in the AP's register space.
 	 */
 	uint32_t (*ai_read)(void *, uint32_t reg);
-	int (*ai_write)(void *, uint32_t reg, uint32_t data);
+	int (*ai_write)(void *, uint32_t reg, uint32_t data, bool flush);
 
 	/*
 	 * Returns non-zero if a DP error has been flagged since the last

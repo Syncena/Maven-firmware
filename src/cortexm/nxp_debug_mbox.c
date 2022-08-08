@@ -113,7 +113,7 @@ nxp_reg_write(struct nxp_debug_mbox_state *ms, uint32_t reg, uint32_t v)
 {
 	int rv;
 
-	rv = ms->ms_ap->ai_write(ms->ms_ap_arg, reg, v);
+	rv = ms->ms_ap->ai_write(ms->ms_ap_arg, reg, v, true);
 
 	return rv == 0 && ms->ms_ap->ai_dp_error(ms->ms_ap_arg) == 0;
 }

@@ -748,6 +748,24 @@ adiv5_dp_unreference(adiv5_dp_t dp)
 	}
 }
 
+static void
+adiv5_flush_ap_write_buffer(const struct adiv5_ap_state *as)
+{
+
+	/*
+	 * AP writes to a target are posted. However, accessing certain DP
+	 * registers can cause a pending posted write to be aborted if the
+	 * access happens within a very short window of time since the AP
+	 * write. This results in a sticky error and data loss. The timing
+	 * is such that it's unlikely to be a problem with software bit-bashed
+	 * SWD/JTAG, but may be an issue in the future.
+	 *
+	 * Perform a dummy read of the DP's RDBUFF register to ensure the
+	 * posted write completes.
+	 */
+	(void) adiv5_dp_read(as->as_dp, DP_REG_RDBUFF);
+}
+
 static uint32_t
 adiv5_ap_read(void *arg, uint32_t reg)
 {
@@ -762,6 +780,19 @@ adiv5_ap_write(void *arg, uint32_t reg, uint32_t data)
 	const struct adiv5_ap_state *as = arg;
 
 	return adiv5_dp_write(as->as_dp, as->as_ap_sel | reg, data);
+}
+
+static int
+adiv5_ap_write_with_flush(void *arg, uint32_t reg, uint32_t data, bool flush)
+{
+	const struct adiv5_ap_state *as = arg;
+	int rv;
+
+	rv = adiv5_dp_write(as->as_dp, as->as_ap_sel | reg, data);
+	if (flush && rv >= 0)
+		adiv5_flush_ap_write_buffer(as);
+
+	return rv;
 }
 
 static int
@@ -907,7 +938,8 @@ adiv5_mem_ap_write16(adiv5_mem_ap_t ma, target_addr_t addr, uint16_t data)
 	}
 
 	drw = ((uint32_t)data) << ((addr & 0x2u) * 8);
-	rv = adiv5_ap_write(&ma->ma_as, ADIV5_MEM_AP_REG_DRW, drw);
+	rv = adiv5_ap_write_with_flush(&ma->ma_as, ADIV5_MEM_AP_REG_DRW, drw,
+	    true);
 
 	DBMFPRINTF(ADIV5_MEM_AP_REG, "addr %08" PRIxTADDR " DONE\n", addr);
 
@@ -955,7 +987,8 @@ adiv5_mem_ap_write32(adiv5_mem_ap_t ma, target_addr_t addr, uint32_t data)
 		return -1;
 	}
 
-	rv = adiv5_ap_write(&ma->ma_as, ADIV5_MEM_AP_REG_DRW, data);
+	rv = adiv5_ap_write_with_flush(&ma->ma_as, ADIV5_MEM_AP_REG_DRW, data,
+	    true);
 
 	DBMFPRINTF(ADIV5_MEM_AP_REG, "addr %08" PRIxTADDR " DONE\n", addr);
 
@@ -1739,6 +1772,7 @@ adiv5_mem_ap_sysmem_write_int(adiv5_mem_ap_t ma, target_addr_t taddr,
 
 		if (((taddr ^ taddr_save) & ma->ma_tar_mask) != 0) {
 			/* Crossed an autoinc boundary. Maybe re-write TAR */
+			adiv5_flush_ap_write_buffer(&ma->ma_as);
 			ma->ma_flags &= ~ADIV5_MA_FLAGS_TAR_VALID;
 			taddr_save = taddr;
 			if (adiv5_mem_ap_setup_address(ma, taddr, size,
@@ -1749,6 +1783,7 @@ adiv5_mem_ap_sysmem_write_int(adiv5_mem_ap_t ma, target_addr_t taddr,
 			}
 		}
 	}
+	adiv5_flush_ap_write_buffer(&ma->ma_as);
 
 	if (adiv5_dp_error(ma->ma_as.as_dp)) {
 		DBMFPRINTF(ADIV5_MEM_AP_API_ERRORS, "Write failed near "
@@ -2945,7 +2980,7 @@ static const struct target_link_ops adiv5_mem_ap_interface = {
 
 static const struct adiv5_ap_interface adiv5_other_ap_interface = {
 	.ai_read = adiv5_ap_read,
-	.ai_write = adiv5_ap_write,
+	.ai_write = adiv5_ap_write_with_flush,
 	.ai_dp_error = adiv5_dp_get_error_log,
 	.ai_free = adiv5_other_ap_free
 };

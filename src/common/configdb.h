@@ -31,6 +31,7 @@
 #ifndef CONFIGDB_H
 #define CONFIGDB_H
 
+#include <sys/types.h>
 #include "cf_registry.h"
 
 typedef uint16_t	cf_id_t;

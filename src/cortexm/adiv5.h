@@ -31,6 +31,7 @@
 #ifndef ADIV5_H
 #define ADIV5_H
 
+#include <sys/types.h>
 #include <stdbool.h>
 
 #include "target.h"

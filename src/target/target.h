@@ -31,6 +31,7 @@
 #ifndef TARGET_H
 #define TARGET_H
 
+#include <sys/types.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>

@@ -259,6 +259,8 @@ ASMFLAGS	+= $(SOURCE_FLAGS)
 LDFLAGS		+= -Wl,-Map=$(PRODUCT).map
 LDFLAGS		+= -Wl,--gc-sections -Wl,--relax
 LDFLAGS		+= -Wl,--script=$(PLATFORM_LDSCRIPT)
+COMMA		:= ,
+LDFLAGS		+= $(patsubst %,-Wl$(COMMA)--wrap=%,$(WRAPSYMBOLS))
 LDFLAGS		+= $(COMMON_FLAGS)
 LIBS		+= $(patsubst %,-L%,$(EXTRALIBDIRS)) $(EXTRALIBS)
 

@@ -177,8 +177,10 @@ _gettimeofday(struct timeval *tv, void *tzp)
 	return 0;
 }
 
+extern void *__wrap__malloc_r(struct _reent *r, size_t size)
+     __attribute__ ((used));
 void *
-_malloc_r(struct _reent *r, size_t size)
+__wrap__malloc_r(struct _reent *r, size_t size)
 {
 
 	(void) r;
@@ -186,8 +188,10 @@ _malloc_r(struct _reent *r, size_t size)
 	return zone_malloc(size);
 }
 
+extern void __wrap__free_r(struct _reent *r, void *ptr)
+     __attribute__ ((used));
 void
-_free_r(struct _reent *r, void *ptr)
+__wrap__free_r(struct _reent *r, void *ptr)
 {
 
 	(void) r;
@@ -195,10 +199,10 @@ _free_r(struct _reent *r, void *ptr)
 	zone_free(ptr);
 }
 
-extern void *_calloc_r(struct _reent *r, size_t n, size_t size)
+extern void *__wrap__calloc_r(struct _reent *r, size_t n, size_t size)
      __attribute__ ((used));
 void *
-_calloc_r(struct _reent *r, size_t n, size_t size)
+__wrap__calloc_r(struct _reent *r, size_t n, size_t size)
 {
 
 	(void) r;
@@ -206,10 +210,10 @@ _calloc_r(struct _reent *r, size_t n, size_t size)
 	return zone_calloc(n, size);
 }
 
-extern void * _realloc_r(struct _reent *r, void *ptr, size_t size)
+extern void * __wrap__realloc_r(struct _reent *r, void *ptr, size_t size)
      __attribute__ ((used));
 void *
-_realloc_r(struct _reent *r, void *ptr, size_t size)
+__wrap__realloc_r(struct _reent *r, void *ptr, size_t size)
 {
 	void *rv;
 
@@ -227,10 +231,184 @@ _realloc_r(struct _reent *r, void *ptr, size_t size)
 	return rv;
 }
 
+extern void __wrap__mstats_r(struct _reent *r, char *p)
+     __attribute__ ((used));
 void
-_mstats_r(struct _reent *r, char *p)
+__wrap__mstats_r(struct _reent *r, char *p)
 {
 
 	(void) r;
 	(void) p;
 }
+
+/*
+ * Can't use assert() within the locking primitives; infinite recursion
+ * could rear its ugly head.
+ */
+#ifndef	NDEBUG
+#define	LOCK_ASSERT(x,msg)						       \
+	do {								       \
+		if (!(x)) {						       \
+			_write(1, (char *)(uintptr_t)(msg), sizeof(msg) - 1);  \
+			abort();					       \
+		}							       \
+	} while (/*CONSTCOND*/0)
+#else
+#define	LOCK_ASSERT(x,msg)						       \
+	do {								       \
+		/* Nothing */						       \
+	} while (/*CONSTCOND*/0)
+#endif
+
+struct __lock {
+	bool is_recursive;
+	rtos_mutex_t mutex;
+};
+
+struct __lock __wrap___lock___sinit_recursive_mutex;
+struct __lock __wrap___lock___sfp_recursive_mutex;
+struct __lock __wrap___lock___env_recursive_mutex;
+
+#if 0
+/* These are not used. */
+struct __lock __lock___atexit_recursive_mutex;
+struct __lock __lock___at_quick_exit_mutex;
+struct __lock __lock___malloc_recursive_mutex;
+struct __lock __lock___dd_hash_mutex;
+struct __lock __lock___arc4random_mutex;
+struct __lock __lock___tz_mutex;
+#endif
+
+static void
+common_lock_init(_LOCK_T l, bool recursive)
+{
+
+	LOCK_ASSERT(l != NULL, "NULL lock\n");
+	l->is_recursive = recursive;
+	l->mutex = recursive ? rtos_mutex_create_recursive() : rtos_mutex_create();
+	LOCK_ASSERT(l->mutex != NULL, "NULL mutex\n");
+}
+
+void __wrap___retarget_lock_init (_LOCK_T *lock);
+void
+__wrap___retarget_lock_init (_LOCK_T *lock)
+{
+	_LOCK_T l = zone_malloc(sizeof(struct __lock));
+
+	common_lock_init(l, false);
+	*lock = l;
+}
+
+void __wrap___retarget_lock_init_recursive(_LOCK_T *lock);
+void
+__wrap___retarget_lock_init_recursive(_LOCK_T *lock)
+{
+	_LOCK_T l = zone_malloc(sizeof(struct __lock));
+
+	common_lock_init(l, true);
+	*lock = l;
+}
+
+void __wrap___retarget_lock_close(_LOCK_T lock);
+void
+__wrap___retarget_lock_close(_LOCK_T lock)
+{
+
+	LOCK_ASSERT(lock->is_recursive == false, "Closing recursive mutex\n");
+	LOCK_ASSERT(lock->mutex != NULL, "Mutex is NULL\n");
+
+	rtos_mutex_delete(lock->mutex);
+	zone_free(lock);
+}
+
+void __wrap___retarget_lock_close_recursive(_LOCK_T lock);
+void
+__wrap___retarget_lock_close_recursive(_LOCK_T lock)
+{
+
+	LOCK_ASSERT(lock->is_recursive == true, "Closing regular mutex\n");
+	LOCK_ASSERT(lock->mutex != NULL, "Mutex is NULL\n");
+
+	rtos_mutex_delete(lock->mutex);
+	zone_free(lock);
+}
+
+void __wrap___retarget_lock_acquire (_LOCK_T lock);
+void
+__wrap___retarget_lock_acquire (_LOCK_T lock)
+{
+
+	LOCK_ASSERT(lock->is_recursive == false, "Acquire on recursive mtx\n");
+	LOCK_ASSERT(lock->mutex != NULL, "Mutex is NULL\n");
+
+	rtos_mutex_acquire(lock->mutex);
+}
+
+void __wrap___retarget_lock_acquire_recursive (_LOCK_T lock);
+void
+__wrap___retarget_lock_acquire_recursive (_LOCK_T lock)
+{
+
+	LOCK_ASSERT(lock->is_recursive == true, "Acquire on regular mtx\n");
+	LOCK_ASSERT(lock->mutex != NULL, "Mutex is NULL\n");
+
+	rtos_mutex_acquire_recursive(lock->mutex);
+}
+
+int __wrap___retarget_lock_try_acquire(_LOCK_T lock);
+int
+__wrap___retarget_lock_try_acquire(_LOCK_T lock)
+{
+
+	(void)lock;
+	LOCK_ASSERT(0, "__retarget_lock_try_acquire!!\n");
+	return 0;
+}
+
+int __wrap___retarget_lock_try_acquire_recursive(_LOCK_T lock);
+int
+__wrap___retarget_lock_try_acquire_recursive(_LOCK_T lock)
+{
+
+	(void)lock;
+	LOCK_ASSERT(0, "__retarget_lock_try_acquire_recursive!!\n");
+	return 0;
+}
+
+void __wrap___retarget_lock_release (_LOCK_T lock);
+void
+__wrap___retarget_lock_release (_LOCK_T lock)
+{
+
+	LOCK_ASSERT(lock->is_recursive == false, "release recursive mtx\n");
+	LOCK_ASSERT(lock->mutex != NULL, "mutex is NULL\n");
+
+	rtos_mutex_release(lock->mutex);
+}
+
+void __wrap___retarget_lock_release_recursive (_LOCK_T lock);
+void
+__wrap___retarget_lock_release_recursive (_LOCK_T lock)
+{
+
+	LOCK_ASSERT(lock->is_recursive == true, "release regular mtx\n");
+	LOCK_ASSERT(lock->mutex != NULL, "mutex is NULL\n");
+
+	rtos_mutex_release_recursive(lock->mutex);
+}
+
+/*
+ * Arrange for locks to be initialised very early on.
+ */
+static void
+retarget_lock_init(void)
+{
+
+	common_lock_init(&__wrap___lock___sinit_recursive_mutex, true);
+	common_lock_init(&__wrap___lock___sfp_recursive_mutex, true);
+	common_lock_init(&__wrap___lock___env_recursive_mutex, true);
+//	common_lock_init(&__wrap___lock___tz_mutex, false);
+}
+
+__attribute__((section(".preinit_array")))
+    void (* const retarget_lock_init_entry[])(void) = {retarget_lock_init};

@@ -13,8 +13,8 @@ Numerous significant features set Maven apart from other ARM programmers/debugge
 - Does not require middleware running on the host, such as OpenOCD, and the associated configuration file(s).
 - Supports Cortex-M TRACESWO serial data in NRZ mode at up to 3MHz.
 - Communicates with your target using RS232 on a UART or bit-banged I/O pin. Maven will make the UART data available over WiFi using the telnet command on your host. Both RxD and TxD are supported at all the common baud rates.
-- Maven firmware supports an OLED display to keep you informed of both its status and various target parameters. It can also be configured to show the RS232 data received from the target.
-- The optional USB interface provides CDC-compatible RS232 interfaces. One of those is dedicated to TRACVESWO data. Another other provides access to the same target UART interface mentioned above.
+- Maven firmware supports an OLED display to keep you informed of both its status and various target parameters.
+- The optional USB interface provides CDC-compatible RS232 interfaces. One of those is dedicated to TRACVESWO data. Another other provides access to the same target UART interface mentioned above. Note: the number of CDC interfaces is hardware-dependent.
 
 # GDB Server Support
 Maven’s primary purpose is to act as a GDB server on behalf of the target

@@ -71,7 +71,7 @@ stringio_write(void *cookie, const char *buff, int count)
 		size_t need_size;
 
 		for (need_size = ss->ss_buff_size + STRINGIO_INCREMENT;
-		    need_size < new_bytes;
+		    need_size <= new_bytes;
 		    need_size += STRINGIO_INCREMENT) {
 		}
 

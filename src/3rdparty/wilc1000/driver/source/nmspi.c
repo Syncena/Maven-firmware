@@ -39,7 +39,7 @@
 
 #ifdef CONF_WILC_USE_SPI
 
-#undef USE_OLD_SPI_SW
+#define USE_OLD_SPI_SW
 
 #include "bus_wrapper/include/nm_bus_wrapper.h"
 #include "nmspi.h"
@@ -296,7 +296,9 @@ static sint8 spi_data_rsp(uint8 cmd)
 	uint8 len;
 	uint8 rsp[3];
 	sint8 result = N_OK;
-    (void)cmd;
+
+	(void) cmd;
+
     if (!gu8Crc_off)
 		len = 2;
 	else
@@ -384,10 +386,10 @@ _fail_:
 static int spi_cmd_complete(uint8_t cmd, uint32_t adr, uint8_t *b, uint32_t sz, uint8_t clockless)
 {
 	uint8_t wb[32], rb[32];
-	uint32_t wix, rix;
+	uint8_t wix, rix;
 	uint32_t len2;
 	uint8_t rsp;
-	uint32_t len = 0;
+	int len = 0;
 	int result = N_OK;
 
 	wb[0] = cmd;
@@ -639,7 +641,7 @@ static int spi_cmd_complete(uint8_t cmd, uint32_t adr, uint8_t *b, uint32_t sz, 
 					}
 				}
 			} else if((cmd == CMD_DMA_READ) || (cmd == CMD_DMA_EXT_READ)) {
-				uint32_t ix;
+				int ix;
 
 				/* some data may be read in response to dummy bytes. */
 				for(ix=0; (rix < len2) && (ix < sz);) {
@@ -651,7 +653,7 @@ static int spi_cmd_complete(uint8_t cmd, uint32_t adr, uint8_t *b, uint32_t sz, 
 				sz -= ix;
 
 				if(sz > 0) {
-					uint32_t nbytes;
+					int nbytes;
 					
 					if (sz <= (DATA_PKT_SZ-ix)) {
 						nbytes = sz;
@@ -686,7 +688,7 @@ static int spi_cmd_complete(uint8_t cmd, uint32_t adr, uint8_t *b, uint32_t sz, 
 
 				/*  if any data in left unread, then read the rest using normal DMA code.*/	
 				while(sz > 0) {
-					uint32_t nbytes;
+					int nbytes;
 			
 					if (sz <= DATA_PKT_SZ) {
 						nbytes = sz;
@@ -745,7 +747,7 @@ static int spi_cmd_complete(uint8_t cmd, uint32_t adr, uint8_t *b, uint32_t sz, 
 _error_:
 	return result;
 }
-#else	/* USE_OLD_SPI_SW */
+#endif
 
 static sint8 spi_data_read(uint8 *b, uint16 sz,uint8 clockless)
 {
@@ -815,7 +817,6 @@ static sint8 spi_data_read(uint8 *b, uint16 sz,uint8 clockless)
 
 	return result;
 }
-#endif	/* USE_OLD_SPI_SW */
 
 static sint8 spi_data_write(uint8 *b, uint16 sz)
 {

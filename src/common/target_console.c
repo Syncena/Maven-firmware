@@ -198,6 +198,22 @@ target_console_worker(void *arg)
 }
 
 void
+target_console_control(bool enable)
+{
+	struct target_console_state *ts = &target_console_state;
+	rtos_saved_ipl_t ipl;
+
+	ipl = rtos_ipl_raise(HW_IPL_SCHEDULER);
+	if (ts->ts_port_daemon != NULL) {
+		if (enable)
+			platform_uart_target_enable();
+		else
+			platform_uart_target_disable();
+	}
+	rtos_ipl_restore(ipl);
+}
+
+void
 target_console_init(void)
 {
 	static const struct port_daemon_ops target_console_ops = {

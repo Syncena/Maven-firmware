@@ -31,9 +31,11 @@
 #ifndef TARGET_CONSOLE_H
 #define TARGET_CONSOLE_H
 
+#include <stdbool.h>
 #include "target_comms.h"
 
 extern void target_console_init(void);
+extern void target_console_control(bool);
 
 #ifndef	CONFIG_USE_CONFIGDB
 /* This is obsolete, but retained for backwards compatability. */

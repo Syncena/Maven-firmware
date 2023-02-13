@@ -51,6 +51,7 @@
 #include "display.h"
 #include "timer.h"
 #include "ringbuff.h"
+#include "target_console.h"
 #include "platform.h"
 #include "shell.h"
 #ifdef CONFIG_USE_USB
@@ -144,6 +145,8 @@ programmer_hardware_init(struct programmer_state *ps)
 	prog_isp_quiesce(ps->ps_isp);
 	prog_pdi_quiesce(ps->ps_pdi);
 	prog_updi_quiesce(ps->ps_updi);
+
+	target_console_control(true);
 }
 
 static int
@@ -657,6 +660,14 @@ programmer_task(rtos_task_t me)
 				DBFPRINTF("new %s connection\n",
 				    (ps->ps_owner == PROGRAMMER_OWNER_NETWORK) ?
 				    "network" : "usb");
+
+				/*
+				 * Disable target console for the duration
+				 * of the connection - some targets reuse
+				 * programming pins for Debug Tx/Rx, so
+				 * we don't want contention.
+				 */
+				target_console_control(false);
 			}
 		} else
 		if (previous_owner != PROGRAMMER_OWNER_NOBODY) {

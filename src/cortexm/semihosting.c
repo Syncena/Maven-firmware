@@ -866,7 +866,7 @@ semihost_sys_read_semihosting_features(struct semihost_state *ss,
 {
 	uint32_t remaining = sizeof(semihost_features) - ss->ss_feature_off;
 
-	if (remaining == 0) {
+	if (remaining == 0 || remaining > sizeof(semihost_features)) {
 		*rvp = args->datalen;	/* EOF */
 		return TMON_HS_RUNNING;
 	}

@@ -43,6 +43,7 @@ COMMON_SRCS	:=				\
 	$(COMMON_PATH)/jtag_if.c		\
 	$(COMMON_PATH)/jtag_bitbang.c		\
 	$(COMMON_PATH)/main.c			\
+	$(COMMON_PATH)/newlib_locks.c		\
 	$(COMMON_PATH)/newlib_stubs.c		\
 	$(COMMON_PATH)/ringbuff.c		\
 	$(COMMON_PATH)/rtos.c			\
@@ -108,6 +109,13 @@ WRAPSYMBOLS	+= __retarget_lock_release_recursive
 WRAPSYMBOLS	+= __lock___sinit_recursive_mutex
 WRAPSYMBOLS	+= __lock___sfp_recursive_mutex
 WRAPSYMBOLS	+= __lock___env_recursive_mutex
+
+# These are unused.
+#WRAPSYMBOLS	+= __lock___atexit_recursive_mutex
+#WRAPSYMBOLS	+= __lock___at_quick_exit_mutex
+#WRAPSYMBOLS	+= __lock___malloc_recursive_mutex
 #WRAPSYMBOLS	+= __lock___tz_mutex
+#WRAPSYMBOLS	+= __lock___dd_hash_mutex
+#WRAPSYMBOLS	+= __lock___arc4random_mutex
 
 $(foreach t,$(COMMON_SRCS),$(eval $(call make-rule-c,$(COMMON_OBJDIR),$(t))))

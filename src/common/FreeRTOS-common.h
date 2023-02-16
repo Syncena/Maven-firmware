@@ -37,6 +37,7 @@
 #define	configDEBUG_OPTIONS			0
 #endif
 
+#define configUSE_NEWLIB_REENTRANT		1
 #define configUSE_PREEMPTION			1
 #define configUSE_TIME_SLICING			1
 #define configUSE_IDLE_HOOK			1

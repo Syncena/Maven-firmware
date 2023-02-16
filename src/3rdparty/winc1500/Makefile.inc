@@ -48,4 +48,6 @@ WINC1500_SRCS	+=					\
 	${WINC1500_PATH}/socket/source/socket.c
 endif
 
-$(foreach t,$(WINC1500_SRCS),$(eval $(call make-rule-c,$(WINC1500_OBJDIR),$(t))))
+WINC1500_CFLAGS := -Wno-address
+
+$(foreach t,$(WINC1500_SRCS),$(eval $(call make-rule-c-flags,$(WINC1500_OBJDIR),$(t),$(WINC1500_CFLAGS))))

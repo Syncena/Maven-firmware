@@ -28,6 +28,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>

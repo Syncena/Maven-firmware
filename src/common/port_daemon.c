@@ -371,7 +371,7 @@ chooser_menu(port_daemon_instance_t si)
 	static const char chooser_prompt[] = "\r\nChoice: ";
 	ringbuff_t rb = si->si_to_mux;
 	unsigned int i;
-	char buff[8];
+	char buff[16];
 
 	/*
 	 * Send the 'chooser' menu to the host.

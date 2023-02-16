@@ -105,11 +105,4 @@ SECTIONS {
 	} >sram
 
 	PROVIDE ( _heap_end = __top_ram - 0 );
-
-	/* Remove information from the standard libraries */
-	/DISCARD/ : {
-		libc.a ( * )
-		libm.a ( * )
-		libgcc.a ( * )
-	}
 }

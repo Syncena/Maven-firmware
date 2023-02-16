@@ -35,15 +35,7 @@
 #include "rtos.h"
 #include "zone_alloc.h"
 
-/*
- * One of these days newlib might use weak symbols for retargetable locking.
- * Until then, we have to use the linker's "--wrap" feature. What a hack.
- */
-#if 1
-#define	WRAP(n)		__wrap_ ## n
-#else
-#define	WRAP(n)		n
-#endif
+#undef	LOCKS_ARE_WRAPPED
 
 /*
  * Can't use assert() within the locking primitives; infinite recursion
@@ -73,6 +65,11 @@ struct __lock {
 static struct __lock lock_common_mutex;
 static struct __lock lock_common_mutex_r;
 
+#ifdef LOCKS_ARE_WRAPPED
+#define	WRAP(n)		__wrap_ ## n
+#else
+#define	WRAP(n)		n
+#endif
 #define	LOCK_ALIAS(n)		\
 	extern struct __lock __attribute__((alias("lock_common_mutex"))) WRAP(n)
 #define	LOCK_ALIAS_RECURSIVE(n)	\
@@ -84,8 +81,8 @@ LOCK_ALIAS_RECURSIVE(__lock___sinit_recursive_mutex);
 LOCK_ALIAS_RECURSIVE(__lock___sfp_recursive_mutex);
 LOCK_ALIAS_RECURSIVE(__lock___env_recursive_mutex);
 
-#if 0
-/* These are not used. */
+#ifndef LOCKS_ARE_WRAPPED
+/* If wrapping, these are not used. */
 LOCK_ALIAS(__lock___tz_mutex);
 LOCK_ALIAS_RECURSIVE(__lock___atexit_recursive_mutex);
 LOCK_ALIAS(__lock___at_quick_exit_mutex);

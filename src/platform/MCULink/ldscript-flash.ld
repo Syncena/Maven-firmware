@@ -124,11 +124,4 @@ SECTIONS {
 	PROVIDE ( _heap_end = __top_ram - 0 );
 	PROVIDE ( _eeprom_flash_start = (ORIGIN(flash) + LENGTH(flash)) );
 	PROVIDE ( _eeprom_flash_end = _eeprom_flash_start + _EEPROM_Reserved );
-
-	/* Remove information from the standard libraries */
-	/DISCARD/ : {
-		libc.a ( * )
-		libm.a ( * )
-		libgcc.a ( * )
-	}
 }

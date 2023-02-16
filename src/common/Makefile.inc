@@ -96,26 +96,5 @@ endif
 # versions. We do this using the Gnu linker's "--wrap" feature. Call out all
 # the wrapped symbols here...
 WRAPSYMBOLS	+= _malloc_r _calloc_r _realloc_r _free_r _mstats_r
-WRAPSYMBOLS	+= __retarget_lock_init
-WRAPSYMBOLS	+= __retarget_lock_init_recursive
-WRAPSYMBOLS	+= __retarget_lock_close
-WRAPSYMBOLS	+= __retarget_lock_close_recursive
-WRAPSYMBOLS	+= __retarget_lock_acquire
-WRAPSYMBOLS	+= __retarget_lock_acquire_recursive
-WRAPSYMBOLS	+= __retarget_lock_try_acquire
-WRAPSYMBOLS	+= __retarget_lock_try_acquire_recursive
-WRAPSYMBOLS	+= __retarget_lock_release
-WRAPSYMBOLS	+= __retarget_lock_release_recursive
-WRAPSYMBOLS	+= __lock___sinit_recursive_mutex
-WRAPSYMBOLS	+= __lock___sfp_recursive_mutex
-WRAPSYMBOLS	+= __lock___env_recursive_mutex
-
-# These are unused.
-#WRAPSYMBOLS	+= __lock___atexit_recursive_mutex
-#WRAPSYMBOLS	+= __lock___at_quick_exit_mutex
-#WRAPSYMBOLS	+= __lock___malloc_recursive_mutex
-#WRAPSYMBOLS	+= __lock___tz_mutex
-#WRAPSYMBOLS	+= __lock___dd_hash_mutex
-#WRAPSYMBOLS	+= __lock___arc4random_mutex
 
 $(foreach t,$(COMMON_SRCS),$(eval $(call make-rule-c,$(COMMON_OBJDIR),$(t))))

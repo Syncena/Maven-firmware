@@ -140,7 +140,7 @@ struct display_state {
 	rtos_mutex_t ds_mutex;
 	rtos_timer_t ds_refresh_timer;
 	rtos_timer_t ds_activity_timer;
-	char ds_status[DISPLAY_STATUS_ROWS][DISPLAY_STATUS_COLUMNS + 1];
+	char ds_status[DISPLAY_STATUS_ROWS][DISPLAY_STATUS_COLUMNS + 16];
 	char ds_buffer[DISPLAY_MAIN_ROWS][DISPLAY_MAIN_COLUMNS + 1];
 };
 static struct display_state display_state;

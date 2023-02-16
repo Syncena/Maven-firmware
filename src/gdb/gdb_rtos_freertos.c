@@ -515,7 +515,7 @@ gdb_freertos_threads(void *cookie, struct gdb_rtos_thread **rtp,
 
 	/* Start with the ready lists. */
 	for (unsigned int rdy = 0; rdy < priorities; rdy++) {
-		char qname[16];
+		char qname[24];
 
 		snprintf(qname, sizeof(qname), "Ready, Pri %u", rdy);
 

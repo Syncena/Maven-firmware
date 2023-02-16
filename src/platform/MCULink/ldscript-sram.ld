@@ -10,7 +10,7 @@ _EEPROM_Reserved = 0x4000;
 /* Specify the memory areas */
 MEMORY {
 	flash (rx)	: ORIGIN = 0x00000000, LENGTH = 640K - (_EEPROM_Reserved + (17 * 512))
-	ramx (rwx)	: ORIGIN = 0x04000000, LENGTH = 32K
+	ramx (rx)	: ORIGIN = 0x04000000, LENGTH = 32K
 	sram (rw)	: ORIGIN = 0x20000000, LENGTH = 256K
 	usbram (rw)	: ORIGIN = 0x40100000, LENGTH = 16K
 	/* RAM4 (16KB @ 0x20040000 is used for RTOS objects/stacks. */

@@ -57,6 +57,7 @@ struct sam_id {
 };
 
 #define	SAMX7x_REG_CHIPID		0x400e0940u
+#define	SAMX7x_CHIPID_REV(id)		((char)((id & 0x0fu) + 'A'))
 #define	SAMX7x_EEFC_BASE		0x400e0c00u
 #define	SAMX7x_EEFC_OFFSET		0x0u
 #define	SAMX7x_ROM_BASE			0x00800000u
@@ -152,7 +153,8 @@ sam_lookup_part(target_t t, const struct sam_id *si, int nids,
 				part[i] = si->si_part[i];
 			part[i] = '\0';
 			snprintf(soc_name, sizeof(soc_name),
-			    SAMX7X_PART_PREFIX "%s", part);
+			    SAMX7X_PART_PREFIX "%s-%c", part,
+			    SAMX7x_CHIPID_REV(chipid));
 			snprintf(id_string, sizeof(id_string),
 			    "ID %08" PRIX32 " %08" PRIX32, chipid, chipid_ex);
 			target_register_name(SAMX7X_PART_VENDOR, soc_name,

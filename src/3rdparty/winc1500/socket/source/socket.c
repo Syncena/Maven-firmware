@@ -864,7 +864,7 @@ sint16 recv(SOCKET sock, void *pvRecvBuf, uint16 u16BufLen, uint32 u32Timeoutmse
 }
 /*********************************************************************
 Function
-		close
+		sock_close
 
 Description
 
@@ -880,7 +880,7 @@ Version
 Date
 		4 June 2012
 *********************************************************************/
-sint8 close(SOCKET sock)
+sint8 sock_close(SOCKET sock)
 {
 	sint8	s8Ret = SOCK_ERR_INVALID_ARG;
 	if(sock >= 0 && (gastrSockets[sock].bIsUsed == 1))

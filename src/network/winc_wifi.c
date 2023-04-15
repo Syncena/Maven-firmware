@@ -993,7 +993,7 @@ winc_wifi_open(void *arg, network_sock_type_t stype,
 	ws->ws_sock = socket(AF_INET, sock_type, 0);
 	if (WINC_BAD_SOCKET(ws->ws_sock)) {
 		if (ws->ws_sock >= MAX_SOCKET) {
-			close(ws->ws_sock);
+			sock_close(ws->ws_sock);
 			ws->ws_sock = WINC_SOCK_INVALID;
 		}
 		return NETWORK_SOCKET_INVALID;
@@ -1028,7 +1028,7 @@ winc_wifi_close(void *arg, network_sock_t sock)
 	if (!WINC_BAD_SOCKET(ws->ws_sock)) {
 		DBFPRINTF("sock %u: close\n", (unsigned int)ws->ws_sock);
 		ww->ww_asf2sock[ws->ws_sock] = NULL;
-		close(ws->ws_sock);
+		sock_close(ws->ws_sock);
 		ws->ws_sock = WINC_SOCK_INVALID;
 	}
 
@@ -1037,7 +1037,7 @@ winc_wifi_close(void *arg, network_sock_t sock)
 		    (unsigned int)ws->ws_sock,
 		    (unsigned int)ws->ws_listen_sock);
 		ww->ww_asf2sock[ws->ws_listen_sock] = NULL;
-		close(ws->ws_listen_sock);
+		sock_close(ws->ws_listen_sock);
 		ws->ws_listen_sock = WINC_SOCK_INVALID;
 	}
 
@@ -1690,7 +1690,7 @@ winc_wifi_socket_handle_bind(struct winc_socket *ws,
 		DBFPRINTF("sock %u: posting UDP recv\n",
 		    (unsigned int)ws->ws_sock);
 		if (winc_wifi_post_recv(ws->ws_winc, ws) == 0) {
-			close(ws->ws_sock);
+			sock_close(ws->ws_sock);
 			ws->ws_sock = WINC_SOCK_INVALID;
 		} else {
 			winc_wifi_sock_connect(ws);
@@ -1751,7 +1751,7 @@ winc_wifi_socket_handle_accept(struct winc_socket *ws,
 		 * We don't permit multiple connections for now
 		 */
 		DBFPRINTF("no multi\n");
-		close(msg->sock);
+		sock_close(msg->sock);
 	} else
 	if (WINC_BAD_SOCKET(msg->sock)) {
 		DBFPRINTF("bad sock\n");
@@ -1778,7 +1778,7 @@ winc_wifi_socket_handle_accept(struct winc_socket *ws,
 		if (winc_wifi_post_recv(ww, ws) == 0) {
 			ww->ww_asf2sock[ws->ws_sock] = NULL;
 			ws->ws_sock = WINC_SOCK_INVALID;
-			close(msg->sock);
+			sock_close(msg->sock);
 		} else {
 			winc_wifi_sock_connect(ws);
 		}
@@ -1877,7 +1877,7 @@ winc_wifi_socket_handle_recv(struct winc_wifi *ww, struct winc_socket *ws,
 	}
 
 	if (msg->s16BufferSize == 0) {
-		/* I believe this is to ACK a close() */
+		/* I believe this is to ACK a sock_close() */
 		DBFPRINTF("zero buff\n");
 		winc_wifi_recv_cleanup(ww, ws);
 		return;
@@ -1957,7 +1957,7 @@ winc_wifi_socket_handle_send(struct winc_socket *ws, int16_t sent_len)
 	}
 
 	if (sent_len == 0) {
-		/* I believe this is to ACK a close() */
+		/* I believe this is to ACK a sock_close() */
 		DBFPRINTF("zero buff\n");
 		return;
 	}

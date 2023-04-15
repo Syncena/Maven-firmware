@@ -1668,7 +1668,7 @@ NMI_API sint16 sendto(SOCKET sock, void *pvSendBuffer, uint16 u16SendLength, uin
  /**@{*/
 /*!
 @fn	\
-	NMI_API sint8 close(SOCKET sock);
+	NMI_API sint8 sock_close(SOCKET sock);
 
 @param [in]	sock
 				Socket ID, must hold a non negative value.
@@ -1688,7 +1688,7 @@ NMI_API sint16 sendto(SOCKET sock, void *pvSendBuffer, uint16 u16SendLength, uin
 @return		
 	The function returned @ref SOCK_ERR_NO_ERROR for successful operation and a negative value (indicating the error) otherwise. 
 */
-NMI_API sint8 close(SOCKET sock);
+NMI_API sint8 sock_close(SOCKET sock);
 /** @} */
 /** @defgroup InetAddressFn nmi_inet_addr
 *  @ingroup SocketAPI

@@ -123,6 +123,10 @@ maven_cortex:
 	-rm -f tags
 	ctags -R $(MAVEN) $(SAMD51) $(GDB) $(CORTEXM) $(WILC1000) $(COMMON) $(LWIP) $(TINY_USB_SAMD)
 
+maven_avr:
+	-rm -f tags
+	ctags -R $(MAVEN) $(SAMD51) $(AVR) $(WILC1000) $(COMMON) $(LWIP) $(TINY_USB_SAMD)
+
 mculink:
 	-rm -f tags
 	ctags -R $(MCULINK) $(LPC55S69) $(GDB) $(CORTEXM) $(COMMON) $(TINY_USB_LPC55)

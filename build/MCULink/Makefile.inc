@@ -35,6 +35,9 @@ CPU_ARCH			:= arm
 ARM_CPU_OPTION			:= cortex-m33
 PLATFORM			:= MCULink
 
+CFLAGS				+= -fno-exceptions
+CFLAGS				+= -fno-unwind-tables
+
 MK_INCLUDE_ARMV8M		:= 1
 MK_INCLUDE_CONFIGDB		:= 1
 MK_INCLUDE_EEPROM_EMULATION	:= 1

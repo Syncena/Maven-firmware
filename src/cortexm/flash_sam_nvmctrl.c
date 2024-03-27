@@ -695,17 +695,10 @@ sam_nvmctrl0_erase_user(target_flash_t tf, const struct target_flash_sector *fs)
  * =============
  */
 static int
-sam_nvmctrl1_send_command(struct sam_nvmctrl_state *ns, uint32_t addr,
-    uint16_t cmd)
+sam_nvmctrl1_wait_ready(struct sam_nvmctrl_state *ns)
 {
 	timer_timeout_t to;
 	uint8_t stat8;
-
-	if (sam_nvmctrl_write_reg32(ns, SAM_NVMCTRL1_ADDR, SAM_ADDR1(addr)) < 0)
-		return -1;
-
-	if (sam_nvmctrl_write_reg16(ns, SAM_NVMCTRL1_CMD, cmd) < 0)
-		return -1;
 
 	timer_timeout_start(&to, 2000);
 
@@ -726,6 +719,20 @@ sam_nvmctrl1_send_command(struct sam_nvmctrl_state *ns, uint32_t addr,
 	}
 
 	return ((stat8 & SAM_INT1_READY) == 0) ? -1 : 0;
+}
+
+static int
+sam_nvmctrl1_send_command(struct sam_nvmctrl_state *ns, uint32_t addr,
+    uint16_t cmd)
+{
+
+	if (sam_nvmctrl_write_reg32(ns, SAM_NVMCTRL1_ADDR, SAM_ADDR1(addr)) < 0)
+		return -1;
+
+	if (sam_nvmctrl_write_reg16(ns, SAM_NVMCTRL1_CMD, cmd) < 0)
+		return -1;
+
+	return sam_nvmctrl1_wait_ready(ns);
 }
 
 static int
@@ -880,11 +887,9 @@ sam_nvmctrl1_erase_user(target_flash_t tf, const struct target_flash_sector *fs)
  * =============
  */
 static int
-sam_nvmctrl2_send_command(struct sam_nvmctrl_state *ns, uint32_t addr,
-    uint16_t cmd)
+sam_nvmctrl2_wait_ready(struct sam_nvmctrl_state *ns)
 {
 	timer_timeout_t to;
-	uint8_t stat8;
 
 	timer_timeout_start(&to, 2000);
 	do {
@@ -895,7 +900,17 @@ sam_nvmctrl2_send_command(struct sam_nvmctrl_state *ns, uint32_t addr,
 			break;
 	} while (!timer_timeout_expired(&to));
 
-	if (timer_timeout_expired(&to))
+	return timer_timeout_expired(&to) ? -1 : 0;
+}
+
+static int
+sam_nvmctrl2_send_command(struct sam_nvmctrl_state *ns, uint32_t addr,
+    uint16_t cmd)
+{
+	timer_timeout_t to;
+	uint8_t stat8;
+
+	if (sam_nvmctrl2_wait_ready(ns) < 0)
 		return -1;
 
 	if (sam_nvmctrl_write_reg32(ns, SAM_NVMCTRL2_ADDR, SAM_ADDR2(addr)) < 0)
@@ -1306,20 +1321,26 @@ sam_nvmctrl_finish(target_flash_t tf)
 	 */
 	switch (SAM_NVMCTRL_TYPE(ns)) {
 	case FLASH_SAM_NVMCTRL_TYPE_0:
+		(void) sam_nvmctrl0_wait_ready(ns);
 		sam_nvmctrl_write_reg16(ns, SAM_NVMCTRL0_CTRL,
 		    (uint16_t) ns->ns_save_ctrl);
+		(void) sam_nvmctrl0_wait_ready(ns);
 		break;
 
 	case FLASH_SAM_NVMCTRL_TYPE_1:
+		(void) sam_nvmctrl1_wait_ready(ns);
 		sam_nvmctrl_write_reg32(ns, SAM_NVMCTRL1_CTRL,
 		    ns->ns_save_ctrl);
+		(void) sam_nvmctrl1_wait_ready(ns);
 		break;
 
 	case FLASH_SAM_NVMCTRL_TYPE_2:
+		(void) sam_nvmctrl2_wait_ready(ns);
 		sam_nvmctrl_write_reg32(ns, SAM_NVMCTRL2_CTRL,
 		    ns->ns_save_ctrl & 0x00ffffffu);
 		sam_nvmctrl_write_reg8(ns, SAM_NVMCTRL2_CTRLC,
 		    (uint8_t)(ns->ns_save_ctrl >> 24));
+		(void) sam_nvmctrl2_wait_ready(ns);
 		break;
 
 	default:

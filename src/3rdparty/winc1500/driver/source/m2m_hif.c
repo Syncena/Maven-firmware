@@ -83,7 +83,7 @@ tpfHifCallBack pfCryptoCb = NULL;
 
 static void isr(void)
 {
-	gu8Interrupt++;
+	gu8Interrupt = 1;
 #ifdef NM_LEVEL_INTERRUPT
 	nm_bsp_interrupt_ctrl(0);
 #endif
@@ -92,9 +92,9 @@ static sint8 hif_set_rx_done(void)
 {
 	uint32 reg;
 	sint8 ret = M2M_SUCCESS;
-#ifdef NM_EDGE_INTERRUPT
-	nm_bsp_interrupt_ctrl(1);
-#endif
+//#ifdef NM_EDGE_INTERRUPT
+//	nm_bsp_interrupt_ctrl(1);
+//#endif
 
 	ret = nm_read_reg_with_ret(WIFI_HOST_RCV_CTRL_0,&reg);
 	if(ret != M2M_SUCCESS)goto ERR1;
@@ -104,9 +104,9 @@ static sint8 hif_set_rx_done(void)
 	reg |= (1<<1);
 	ret = nm_write_reg(WIFI_HOST_RCV_CTRL_0,reg);
 	if(ret != M2M_SUCCESS)goto ERR1;
-#ifdef NM_LEVEL_INTERRUPT
-	nm_bsp_interrupt_ctrl(1);
-#endif
+//#ifdef NM_LEVEL_INTERRUPT
+//	nm_bsp_interrupt_ctrl(1);
+//#endif
 ERR1:
 	return ret;
 
@@ -442,6 +442,7 @@ static sint8 hif_isr(void)
 	ret = hif_chip_wake();
 	if(ret == M2M_SUCCESS)
 	{
+	    for (;;) {
 		ret = nm_read_reg_with_ret(WIFI_HOST_RCV_CTRL_0, &reg);
 		if(M2M_SUCCESS == ret)
 		{
@@ -449,7 +450,7 @@ static sint8 hif_isr(void)
 			{
 				uint16 size;
 
-				nm_bsp_interrupt_ctrl(0);
+//				nm_bsp_interrupt_ctrl(0);
 				/*Clearing RX interrupt*/
 				reg &= ~(1<<0);
 				ret = nm_write_reg(WIFI_HOST_RCV_CTRL_0,reg);
@@ -465,7 +466,7 @@ static sint8 hif_isr(void)
 					if(M2M_SUCCESS != ret)
 					{
 						M2M_ERR("(hif) WIFI_HOST_RCV_CTRL_1 bus fail\n");
-						nm_bsp_interrupt_ctrl(1);
+//						nm_bsp_interrupt_ctrl(1);
 						goto ERR1;
 					}
 					ret = nm_read_block(address, (uint8*)&strHif, sizeof(tstrHifHdr));
@@ -473,7 +474,7 @@ static sint8 hif_isr(void)
 					if(M2M_SUCCESS != ret)
 					{
 						M2M_ERR("(hif) address bus fail\n");
-						nm_bsp_interrupt_ctrl(1);
+//						nm_bsp_interrupt_ctrl(1);
 						goto ERR1;
 					}
 					if(strHif.u16Length != size)
@@ -482,7 +483,7 @@ static sint8 hif_isr(void)
 						{
 							M2M_ERR("(hif) Corrupted packet Size = %u <L = %u, G = %u, OP = %02X>\n",
 								size, strHif.u16Length, strHif.u8Gid, strHif.u8Opcode);
-							nm_bsp_interrupt_ctrl(1);
+//							nm_bsp_interrupt_ctrl(1);
 							ret = M2M_ERR_BUS_FAIL;
 							goto ERR1;
 						}
@@ -538,9 +539,10 @@ static sint8 hif_isr(void)
 			else
 			{
 //#ifndef WIN32
-				M2M_ERR("(hif) False interrupt %lx",reg);
+//				M2M_ERR("(hif) False interrupt %lx",reg);
 //#endif
-				nm_bsp_interrupt_ctrl(1);
+//				nm_bsp_interrupt_ctrl(1);
+				break;
 			}
 		}
 		else
@@ -548,6 +550,7 @@ static sint8 hif_isr(void)
 			M2M_ERR("(hif) Fail to Read interrupt reg\n");
 			goto ERR1;
 		}
+	    }
 	}
 	else
 	{
@@ -573,7 +576,7 @@ sint8 hif_handle_isr(void)
 	while (gu8Interrupt) {
 		/*must be at that place because of the race of interrupt increment and that decrement*/
 		/*when the interrupt enabled*/
-		gu8Interrupt--;
+		gu8Interrupt = 0;
 		while(1)
 		{
 			ret = hif_isr();
@@ -587,6 +590,9 @@ sint8 hif_handle_isr(void)
 		}
 	}
 
+#ifdef NM_LEVEL_INTERRUPT
+	nm_bsp_interrupt_ctrl(1);
+#endif
 	return ret;
 }
 /*

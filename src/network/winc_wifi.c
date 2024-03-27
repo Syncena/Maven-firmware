@@ -115,7 +115,7 @@ enum winc_wifi_link_state {
 	WINC_WIFI_STATE_SHOWTIME,
 };
 
-#define	WINC_SOCK_BUFFER_SIZE	1024
+#define	WINC_SOCK_BUFFER_SIZE	1600u
 #define	WINC_SOCK_BUFFER_MAX	(NETWORK_NSOCKETS * 3u)
 struct winc_socket_buffer {
 	SIMPLEQ_ENTRY(winc_socket_buffer) sb_qent;
@@ -214,8 +214,18 @@ struct winc_wifi_lwip {
 	struct pbuf *wwl_tx_pbuf;
 	uint8_t *wwl_tx_payload;
 	uint16_t wwl_tx_payload_len;
-	uint8_t wwl_rx_buffer[128];
+	/*
+	 * Since braindead WINC firmware/software can't do scatter-gather, we
+	 * must bounce Tx pbuf chains through this buffer. It must be large
+	 * enough to contain a full 'Ethernet' packet.
+	 */
 	uint8_t wwl_tx_buffer[1536];
+	/*
+	 * This is used in emergencies if we can't allocate an Rx pbuf.
+	 * Don't be tempted to increase its size; there will be no gain
+	 * in Rx performance.
+	 */
+	uint8_t wwl_rx_buffer[128];
 };
 
 static void winc_wifi_if_rx_cb(uint8, void *, void *);
@@ -1082,6 +1092,7 @@ winc_wifi_connect(void *arg, network_sock_t sock,
 		    SOCK_ERR_NO_ERROR) {
 			return 0;
 		}
+		ws->ws_lport = 0xffffu; /* Can't determine this on WINC1500 */
 	} else {
 		if (bind(ws->ws_sock, (struct sockaddr *)&sa, sizeof(sa)) !=
 		    SOCK_ERR_NO_ERROR) {
@@ -1405,11 +1416,13 @@ winc_wifi_sock_status(void *arg, network_sock_t sock,
 
 static uint16_t
 winc_wifi_write(void *arg, network_sock_t sock, const void *buff, uint16_t len,
-    const uint8_t *dstmac)
+    const uint8_t *dstmac, bool push)
 {
 	struct winc_wifi *ww = arg;
 	struct winc_socket *ws = sock;
 	sint16 x;
+
+	(void) push;
 
 	if (ww->ww_link_state < WINC_WIFI_STATE_CONFIGURED) {
 		DBFPRINTF("no link\n");
@@ -2329,7 +2342,7 @@ winc_wifi_if_start_stop(struct netif *netif, int8_t do_start)
 	} else {
 		struct winc_pbuf *wp;
 
-		m2m_wifi_set_receive_buffer(&wwl->wwl_rx_buffer,
+		m2m_wifi_set_receive_buffer(wwl->wwl_rx_buffer,
 		    sizeof(wwl->wwl_rx_buffer));
 		if (wwl->wwl_rx_pbuf_head != NULL) {
 			pbuf_free(wwl->wwl_rx_pbuf_head);

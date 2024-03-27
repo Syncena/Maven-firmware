@@ -51,6 +51,8 @@ SECTIONS {
 		KEEP (*(SORT(.init_array.*)))
 		KEEP (*(.init_array*))
 		PROVIDE_HIDDEN (__init_array_end = .);
+		PROVIDE_HIDDEN (__exidx_start = .);
+		PROVIDE_HIDDEN (__exidx_end = .);
 
 		/* Library init routines. */
 		KEEP (*(.init))

@@ -39,7 +39,8 @@ PLATFORM_LDSCRIPT	?= $(PLATFORM_PATH)/ldscript-flash.ld
 endif
 
 # If you're using Gcc 12 or later, you might want to uncomment this.
-#LDFLAGS			+= -Wl,--no-warn-rwx-segments
+LDFLAGS			+= -Wl,--no-warn-rwx-segments
+LDFLAGS			+= -Wl,-lnosys
 
 HW_ID			:= 0x20210001
 

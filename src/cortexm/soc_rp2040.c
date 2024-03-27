@@ -300,7 +300,12 @@ rp2040_flash_write_page(target_flash_t tf,
 	if (rp2040_call_rom(rs, &rc, NULL) < 0)
 		return TARGET_FLASH_RESULT_ERROR;
 
-	return TARGET_FLASH_RESULT_OK;
+	/*
+	 * Return TARGET_FLASH_RESULT_VERIFIED to prevent upper-layer code's
+	 * attempt to read back Flash page. The read will fail because the
+	 * Flash is not in XIP mode at this time.
+	 */
+	return TARGET_FLASH_RESULT_VERIFIED;
 }
 
 static int

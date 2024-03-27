@@ -84,6 +84,7 @@ struct network_socket {
 	ringbuff_t s_rb_nw2app;		/* Data from network -> app */
 	ringbuff_t s_rb_app2nw;		/* Data from app -> network */
 	network_sock_t s_dsock;		/* Associated driver socket */
+	uint32_t s_dip;
 	uint16_t s_port;
 	uint16_t s_pending;
 #define	NETWORK_SOCK_WORK_PENDING	1
@@ -148,10 +149,10 @@ static struct network_state network_state;
 
 #ifndef NETWORK_LWIP
 #define	NETWORK_DRIVER_STACK_SIZE	RTOS_STACK_SIZE(1400)
-#define	NETWORK_SOCKET_STACK_SIZE	RTOS_STACK_SIZE(640)
-#else
-#define	NETWORK_DRIVER_STACK_SIZE	RTOS_STACK_SIZE(1600)
 #define	NETWORK_SOCKET_STACK_SIZE	RTOS_STACK_SIZE(1024)
+#else
+#define	NETWORK_DRIVER_STACK_SIZE	RTOS_STACK_SIZE(2000)
+#define	NETWORK_SOCKET_STACK_SIZE	RTOS_STACK_SIZE(1400)
 #endif
 
 #ifdef NETWORK_OPT_COMMAND
@@ -393,13 +394,13 @@ network_drv_recv(struct network_state *ns, network_sock_t sn, void *buff,
 
 static __always_inline uint16_t
 network_drv_write(struct network_state *ns, network_sock_t sn, const void *buff,
-    uint16_t len, const uint8_t *dstmac)
+    uint16_t len, const uint8_t *dstmac, bool push)
 {
 	uint16_t rv;
 
 	network_mutex_acquire_driver(ns);
 	rv = (ns->ns_driver->nd_write)(ns->ns_driver->nd_cookie, sn, buff, len,
-	    dstmac);
+	    dstmac, push);
 	network_mutex_release_driver(ns);
 
 	return rv;
@@ -576,9 +577,9 @@ network_app2nw(struct network_socket *s)
 	struct network_state *ns = s->s_driver;
 	ringbuff_len_t rbl;
 	uint16_t nl, rv;
-	bool consumed, retry;
+	bool consumed, retry, push;
 
-	consumed = retry = false;
+	consumed = retry = push = false;
 
 	while (s->s_connected &&
 	    (rbl = ringbuff_get_count(s->s_rb_app2nw)) &&
@@ -608,6 +609,9 @@ network_app2nw(struct network_socket *s)
 		 * time around.
 		 */
 		nl = mymin(nl, rv);
+		assert(nl > 0);
+
+		push = (rbl == nl);
 
 		/*
 		 * Write data to the network socket directly from
@@ -615,7 +619,7 @@ network_app2nw(struct network_socket *s)
 		 */
 		rv = network_drv_write(ns, s->s_dsock,
 		    ringbuff_consume_current_buff_pointer(s->s_rb_app2nw), nl,
-		    NULL);
+		    NULL, push);
 		if (NETWORK_SOCK_ERR(rv)) {
 			debug_print("network_app2nw: write err %" PRIu16 ". nl "
 			    "%" PRIu16 "\n",rv, nl);
@@ -634,10 +638,8 @@ network_app2nw(struct network_socket *s)
 		consumed = true;
 	}
 
-	if (s->s_connected && consumed) {
+	if (s->s_connected && consumed)
 		ringbuff_consume_done(s->s_rb_app2nw);
-		network_drv_write(ns, s->s_dsock, NULL, 0, NULL);
-	}
 
 	return retry;
 }
@@ -937,6 +939,7 @@ network_socket_listen(uint16_t port, network_sock_status_callback_t cb,
 		s->s_type = NETWORK_SOCK_TYPE_TCP;
 		s->s_cb = cb;
 		s->s_cbarg = cbarg;
+		s->s_dip = ns->ns_ip_params.ip_addr;
 		s->s_port = port;
 		s->s_rb_nw2app = NULL;
 		s->s_rb_app2nw = NULL;
@@ -982,6 +985,7 @@ network_socket_udp(const network_sock_params_t *sp,
 		s->s_type = NETWORK_SOCK_TYPE_UDP;
 		s->s_cb = cb;
 		s->s_cbarg = cbarg;
+		s->s_dip = sp->sp_dest_ip;
 		s->s_port = sp->sp_sport;
 		s->s_rb_nw2app = NULL;
 		s->s_rb_app2nw = NULL;
@@ -1035,9 +1039,8 @@ network_sock_sendto(void *arg, const void *src, uint16_t len,
 		return NETWORK_SOCK_ERR_BUSY;
 	}
 
-	rv = network_drv_write(&network_state, s->s_dsock, src, len, dstmac);
-	if (s->s_type == NETWORK_SOCK_TYPE_TCP)
-		network_drv_write(s->s_driver, s->s_dsock, NULL, 0, NULL);
+	rv = network_drv_write(&network_state, s->s_dsock, src, len, dstmac,
+	    true);
 
 	return rv;
 }

@@ -226,7 +226,7 @@ struct network_driver {
 	network_sock_state_t (*nd_sock_status)(void *, network_sock_t,
 			network_sock_params_t *);
 	uint16_t (*nd_write)(void *, network_sock_t, const void *, uint16_t,
-			const uint8_t *);
+			const uint8_t *, bool);
 };
 
 #define	NETWORK_IP_STR_LEN	16

@@ -43,8 +43,14 @@ MK_INCLUDE_NETWORK	:= 1
 MK_INCLUDE_LWIP		:= 1
 MK_INCLUDE_LWIP_HTTPD	:= 1
 MK_INCLUDE_CONFIGDB	:= 1
-MK_INCLUDE_WILC1000	:= 1
 MK_INCLUDE_TOMCRYPT	:= 1
 MK_INCLUDE_PUFF		:= 1
+
+# Pick one of the folowing according to the WiFi controller used on the
+# device. Note that WINC1500 is preferred due to bugs in the WILC1000's
+# firmware, but also note that WiFi provisioning mode is not supported
+# for WINC1500 in 'raw Ethernet' mode.
+#MK_INCLUDE_WILC1000	:= 1
+MK_INCLUDE_WINC1500_LWIP	:= 1
 
 include $(TOPDIR)/../build/Makefile.inc

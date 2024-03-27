@@ -51,24 +51,38 @@
 #include "lwip/timeouts.h"
 #include "lwip/sys.h"
 
+#define NETWORK_LWIP_PBUF_QUEUE	(5 * NETWORK_NSOCKETS)
+
+struct network_pbuf_queue {
+	struct pbuf *pq_pbuf;
+	u16_t pq_offset;
+	TAILQ_ENTRY(network_pbuf_queue) pq_next;
+};
+TAILQ_HEAD(network_pbuf_queue_head, network_pbuf_queue);
+
+struct network_lwip_state;
+
 struct network_lwip_socket {
 	network_sock_type_t ns_type;
 	network_sock_status_callback_t ns_callback;
 	void *ns_callback_arg;
 	void *ns_pcb;
 	struct tcp_pcb *ns_listen_pcb;
-	struct pbuf *ns_pbuf_cur;
-	struct pbuf *ns_pbuf_queue;
+	struct network_lwip_state *ns_nls;
+	struct network_pbuf_queue_head ns_pbuf_qhead;
 	ip_addr_t ns_remote_addr;
 	u16_t ns_remote_port;
 	uint16_t ns_rd_offset;
 	int16_t ns_sock_state;
+	struct tcp_ext_arg_callbacks ns_ext_arg_listen;
+	struct tcp_ext_arg_callbacks ns_ext_arg_connect;
 };
 #define	NETWORK_LWIP_STATE_DEAD 	(-1)
 #define	NETWORK_LWIP_STATE_INIT 	0
 #define	NETWORK_LWIP_STATE_OPEN 	1
 #define	NETWORK_LWIP_STATE_LISTEN 	2
-#define	NETWORK_LWIP_STATE_CONNECTED 	3
+#define	NETWORK_LWIP_STATE_SYN_SENT 	3
+#define	NETWORK_LWIP_STATE_CONNECTED 	4
 
 struct network_lwip_state {
 	struct network_driver nls_net_driver;
@@ -80,7 +94,12 @@ struct network_lwip_state {
 	netif_ext_callback_t nls_ext_callback;
 	network_link_status_callback_t nls_link_status_cb;
 	void *nls_link_status_cb_arg;
+	struct network_pbuf_queue_head nls_pbuf_qfree;
+	struct network_pbuf_queue nls_pbuf_queue_entries[NETWORK_LWIP_PBUF_QUEUE];
 };
+
+static uint8_t network_ext_arg_listen_id;
+static uint8_t network_ext_arg_connect_id;
 
 static struct network_lwip_socket *
 network_lwip_new_socket(struct network_lwip_state *nls,
@@ -95,6 +114,8 @@ network_lwip_new_socket(struct network_lwip_state *nls,
 	ns->ns_callback = cb;
 	ns->ns_callback_arg = cb_arg;
 	ns->ns_sock_state = NETWORK_LWIP_STATE_INIT;
+	TAILQ_INIT(&ns->ns_pbuf_qhead);
+	ns->ns_nls = nls;
 
 	nls->nls_nsockets++;
 
@@ -102,19 +123,25 @@ network_lwip_new_socket(struct network_lwip_state *nls,
 }
 
 static void
+network_lwip_free_pbuf_queue(struct network_lwip_socket *ns)
+{
+	struct network_lwip_state *nls = ns->ns_nls;
+	struct network_pbuf_queue *pq, *npq;
+
+	TAILQ_FOREACH_SAFE(pq, &ns->ns_pbuf_qhead, pq_next, npq) {
+		TAILQ_REMOVE(&ns->ns_pbuf_qhead, pq, pq_next);
+		pbuf_free(pq->pq_pbuf);
+		pq->pq_pbuf = NULL;
+		TAILQ_INSERT_HEAD(&nls->nls_pbuf_qfree, pq, pq_next);
+	}
+}
+
+static void
 network_lwip_free_socket(struct network_lwip_state *nls,
     struct network_lwip_socket *ns)
 {
 
-	if (ns->ns_pbuf_cur != NULL) {
-		pbuf_free(ns->ns_pbuf_cur);
-		ns->ns_pbuf_cur = NULL;
-	}
-
-	if (ns->ns_pbuf_queue != NULL) {
-		pbuf_free(ns->ns_pbuf_queue);
-		ns->ns_pbuf_queue = NULL;
-	}
+	network_lwip_free_pbuf_queue(ns);
 
 	if (ns->ns_pcb != NULL) {
 		if (ns->ns_type == NETWORK_SOCK_TYPE_TCP) {
@@ -332,16 +359,20 @@ network_lwip_ioctl(void *arg, uint8_t op, void *oparg)
 static void
 network_lwip_rx_pbuf(struct network_lwip_socket *ns, struct pbuf *p)
 {
+	struct network_lwip_state *nls = ns->ns_nls;
+	struct network_pbuf_queue *pq;
 
-	if (ns->ns_pbuf_cur == NULL) {
-		assert(ns->ns_pbuf_queue == NULL);
-		ns->ns_pbuf_cur = p;
-	} else {
-		if (ns->ns_pbuf_queue == NULL)
-			ns->ns_pbuf_queue = p;
-		else
-			pbuf_chain(ns->ns_pbuf_queue, p);
+	if ((pq = TAILQ_FIRST(&nls->nls_pbuf_qfree)) != NULL) {
+		TAILQ_REMOVE(&nls->nls_pbuf_qfree, pq, pq_next);
+	} else
+	if ((pq = malloc(sizeof(*pq))) == NULL) {
+		pbuf_free(p);
+		return;
 	}
+
+	pq->pq_pbuf = p;
+	pq->pq_offset = 0;
+	TAILQ_INSERT_TAIL(&ns->ns_pbuf_qhead, pq, pq_next);
 }
 
 static void
@@ -392,6 +423,7 @@ network_lwip_open_tcp(struct network_lwip_socket *ns)
 		return -1;
 
 	ns->ns_pcb = (void *)pcb;
+	tcp_arg(pcb, ns);
 	return 0;
 }
 
@@ -444,34 +476,6 @@ network_lwip_close(void *cookie, network_sock_t sock)
 	network_lwip_free_socket(nls, ns);
 }
 
-static uint8_t
-network_lwip_connect(void *cookie, network_sock_t sock,
-    const network_sock_params_t *sp)
-{
-	struct network_lwip_socket *ns = (struct network_lwip_socket *)sock;
-	ip_addr_t dest;
-
-	(void) cookie;
-
-	/* XXX: UDP only for the time being. */
-	assert(ns->ns_type == NETWORK_SOCK_TYPE_UDP);
-
-	if (udp_bind((struct udp_pcb *)ns->ns_pcb, IP_ANY_TYPE,
-	    sp->sp_sport) != ERR_OK) {
-		return 0;
-	}
-
-	dest.addr = lwip_htonl(sp->sp_dest_ip);
-	if (udp_connect((struct udp_pcb *)ns->ns_pcb, &dest,
-	    sp->sp_dport) != ERR_OK) {
-		return 0;
-	}
-
-	ns->ns_sock_state = NETWORK_LWIP_STATE_CONNECTED;
-
-	return 1;
-}
-
 static err_t
 network_lwip_tcp_recv_callback(void *arg, struct tcp_pcb *pcb,
     struct pbuf *p, err_t err)
@@ -505,14 +509,7 @@ if (ns->ns_type != NETWORK_SOCK_TYPE_TCP ||
 	}
 
 	if (p == NULL) {
-		if (ns->ns_pbuf_cur != NULL) {
-			pbuf_free(ns->ns_pbuf_cur);
-			ns->ns_pbuf_cur = NULL;
-		}
-		if (ns->ns_pbuf_queue != NULL) {
-			pbuf_free(ns->ns_pbuf_queue);
-			ns->ns_pbuf_queue = NULL;
-		}
+		network_lwip_free_pbuf_queue(ns);
 		ns->ns_sock_state = NETWORK_LWIP_STATE_DEAD;
 		st = NETWORK_STATUS_DISCONNECT;
 		rv = ERR_ABRT;
@@ -573,14 +570,7 @@ network_lwip_tcp_err_callback(void *arg, err_t err)
 
 	assert(ns->ns_type == NETWORK_SOCK_TYPE_TCP);
 
-	if (ns->ns_pbuf_cur != NULL) {
-		pbuf_free(ns->ns_pbuf_cur);
-		ns->ns_pbuf_cur = NULL;
-	}
-	if (ns->ns_pbuf_queue != NULL) {
-		pbuf_free(ns->ns_pbuf_queue);
-		ns->ns_pbuf_queue = NULL;
-	}
+	network_lwip_free_pbuf_queue(ns);
 	ns->ns_sock_state = NETWORK_LWIP_STATE_DEAD;
 
 	if (err == ERR_ABRT)
@@ -589,6 +579,107 @@ network_lwip_tcp_err_callback(void *arg, err_t err)
 		st = NETWORK_STATUS_DISCONNECT;
 
 	ns->ns_callback(st, ns->ns_callback_arg);
+}
+
+static err_t
+network_lwip_tcp_connect_callback(void *arg, struct tcp_pcb *pcb, err_t err)
+{
+	struct network_lwip_socket *ns = arg;
+
+	(void) err;
+
+	if (ns == NULL)
+		return ERR_ABRT;
+
+	/*
+	 * If the socket is anything other than SYN SENT,
+	 * then we don't accept this connection.
+	 */
+	if (ns->ns_sock_state != NETWORK_LWIP_STATE_SYN_SENT)
+		return ERR_ISCONN;
+
+#if (RELEASE_BUILD == 0)
+if (ns->ns_type != NETWORK_SOCK_TYPE_TCP ||
+    ns->ns_pcb == NULL || TAILQ_FIRST(&ns->ns_pbuf_qhead) != NULL) {
+	printf("tcp_connect: pcb %p, err %u, ns_type %u, ns_pcb %p, "
+	    "pbuf_cur %p\n", (void *)pcb, err, ns->ns_type,
+	    (void *)ns->ns_pcb, (void *)TAILQ_FIRST(&ns->ns_pbuf_qhead));
+}
+#endif
+
+	assert(ns->ns_type == NETWORK_SOCK_TYPE_TCP);
+	assert(ns->ns_pcb == pcb);
+	assert(TAILQ_FIRST(&ns->ns_pbuf_qhead) == NULL);
+
+#if (LWIP_TCP_KEEPALIVE != 0)
+	ip_set_option(pcb, SOF_KEEPALIVE);
+#endif
+
+	ns->ns_sock_state = NETWORK_LWIP_STATE_CONNECTED;
+
+	tcp_arg(pcb, ns);
+	tcp_recv(pcb, network_lwip_tcp_recv_callback);
+	tcp_sent(pcb, network_lwip_tcp_sent_callback);
+	tcp_err(pcb, network_lwip_tcp_err_callback);
+
+	ns->ns_callback(NETWORK_STATUS_CONNECT, ns->ns_callback_arg);
+
+	return ERR_OK;
+}
+
+static void
+network_lwip_connect_destroy(u8_t id, void *arg)
+{
+	struct network_lwip_socket *ns = arg;
+
+	(void) id;
+	ns->ns_pcb = NULL;
+	ns->ns_sock_state = NETWORK_LWIP_STATE_DEAD;
+}
+
+static uint8_t
+network_lwip_connect(void *cookie, network_sock_t sock,
+    const network_sock_params_t *sp)
+{
+	struct network_lwip_socket *ns = (struct network_lwip_socket *)sock;
+	ip_addr_t dest;
+
+	(void) cookie;
+
+	dest.addr = lwip_htonl(sp->sp_dest_ip);
+
+	if (ns->ns_type == NETWORK_SOCK_TYPE_UDP) {
+		if (udp_bind((struct udp_pcb *)ns->ns_pcb, IP_ANY_TYPE,
+		    sp->sp_sport) != ERR_OK) {
+			return 0;
+		}
+
+		if (udp_connect((struct udp_pcb *)ns->ns_pcb, &dest,
+		    sp->sp_dport) != ERR_OK) {
+			return 0;
+		}
+
+		ns->ns_sock_state = NETWORK_LWIP_STATE_CONNECTED;
+	} else
+	if (ns->ns_type == NETWORK_SOCK_TYPE_TCP) {
+		struct tcp_pcb *pcb = ns->ns_pcb;
+
+		ns->ns_ext_arg_connect.destroy = network_lwip_connect_destroy;
+		ns->ns_ext_arg_connect.passive_open = NULL;
+		tcp_ext_arg_set_callbacks(pcb, network_ext_arg_connect_id,
+		    &ns->ns_ext_arg_connect);
+		tcp_ext_arg_set(pcb, network_ext_arg_connect_id, ns);
+
+		if (tcp_connect(pcb, &dest, sp->sp_dport,
+		    network_lwip_tcp_connect_callback) != ERR_OK) {
+			return 0;
+		}
+		ns->ns_sock_state = NETWORK_LWIP_STATE_SYN_SENT;
+	} else {
+		assert(0);
+	}
+
+	return 1;
 }
 
 static err_t
@@ -615,16 +706,16 @@ network_lwip_tcp_accept_callback(void *arg, struct tcp_pcb *newpcb, err_t err)
 
 #if (RELEASE_BUILD == 0)
 if (ns->ns_type != NETWORK_SOCK_TYPE_TCP ||
-    ns->ns_pcb != NULL || ns->ns_pbuf_cur != NULL) {
+    ns->ns_pcb != NULL || TAILQ_FIRST(&ns->ns_pbuf_qhead) != NULL) {
 	printf("tcp_accept: newpcb %p, err %u, ns_type %u, ns_pcb %p, "
 	    "pbuf_cur %p\n", (void *)newpcb, err, ns->ns_type,
-	    (void *)ns->ns_pcb, (void *)ns->ns_pbuf_cur);
+	    (void *)ns->ns_pcb, (void *)TAILQ_FIRST(&ns->ns_pbuf_qhead));
 }
 #endif
 
 	assert(ns->ns_type == NETWORK_SOCK_TYPE_TCP);
 	assert(ns->ns_pcb == NULL);
-	assert(ns->ns_pbuf_cur == NULL);
+	assert(TAILQ_FIRST(&ns->ns_pbuf_qhead) == NULL);
 
 #if (LWIP_TCP_KEEPALIVE != 0)
 	ip_set_option(newpcb, SOF_KEEPALIVE);
@@ -632,6 +723,13 @@ if (ns->ns_type != NETWORK_SOCK_TYPE_TCP ||
 
 	ns->ns_pcb = newpcb;
 	ns->ns_sock_state = NETWORK_LWIP_STATE_CONNECTED;
+
+	ns->ns_ext_arg_connect.destroy = network_lwip_connect_destroy;
+	ns->ns_ext_arg_connect.passive_open = NULL;
+	tcp_ext_arg_set_callbacks(newpcb, network_ext_arg_connect_id,
+	    &ns->ns_ext_arg_connect);
+	tcp_ext_arg_set(newpcb, network_ext_arg_connect_id, ns);
+	tcp_ext_arg_set_callbacks(newpcb, network_ext_arg_listen_id, NULL);
 
 	tcp_arg(newpcb, ns);
 	tcp_recv(newpcb, network_lwip_tcp_recv_callback);
@@ -641,6 +739,15 @@ if (ns->ns_type != NETWORK_SOCK_TYPE_TCP ||
 	ns->ns_callback(NETWORK_STATUS_CONNECT, ns->ns_callback_arg);
 
 	return ERR_OK;
+}
+
+static void
+network_lwip_listen_destroy(u8_t id, void *arg)
+{
+	struct network_lwip_socket *ns = arg;
+
+	(void) id;
+	ns->ns_listen_pcb = NULL;
 }
 
 static uint8_t
@@ -664,9 +771,16 @@ network_lwip_listen(void *cookie, network_sock_t sock, uint16_t sport)
 	ns->ns_pcb = NULL;
 	ns->ns_sock_state = NETWORK_LWIP_STATE_LISTEN;
 
-	tcp_arg((struct tcp_pcb *)ns->ns_listen_pcb, ns);
-	tcp_accept((struct tcp_pcb *)ns->ns_listen_pcb,
-	    network_lwip_tcp_accept_callback);
+	ns->ns_ext_arg_listen.destroy = network_lwip_listen_destroy;
+	ns->ns_ext_arg_listen.passive_open = NULL;
+	tcp_ext_arg_set_callbacks(ns->ns_listen_pcb, network_ext_arg_listen_id,
+	    &ns->ns_ext_arg_listen);
+	tcp_ext_arg_set(ns->ns_listen_pcb, network_ext_arg_listen_id, ns);
+	tcp_ext_arg_set_callbacks(ns->ns_listen_pcb,
+	    network_ext_arg_connect_id, NULL);
+
+	tcp_arg(ns->ns_listen_pcb, ns);
+	tcp_accept(ns->ns_listen_pcb, network_lwip_tcp_accept_callback);
 
 	return 1;
 }
@@ -675,43 +789,32 @@ static uint16_t
 network_lwip_read(void *cookie, network_sock_t sock, void *buff, uint16_t len)
 {
 	struct network_lwip_socket *ns = (struct network_lwip_socket *)sock;
-	struct pbuf *p;
+	struct network_lwip_state *nls = cookie;
+	struct network_pbuf_queue *pq;
 	uint16_t this_len, copied_len = 0;
 	uint8_t *cbuff = buff;
-
-	(void) cookie;
 
 	if (ns->ns_sock_state != NETWORK_LWIP_STATE_CONNECTED)
 		return NETWORK_SOCK_ERR_EOF;
 
-	p = ns->ns_pbuf_cur;
-
-	while (len && p != NULL) {
-		this_len = p->len - ns->ns_rd_offset;
-		if (this_len > len)
-			this_len = len;
-
-		memcpy(cbuff, (uint8_t *)p->payload + ns->ns_rd_offset,
-		    this_len);
-
-		cbuff += this_len;
+	while (len > 0 && (pq = TAILQ_FIRST(&ns->ns_pbuf_qhead)) != NULL) {
+		this_len = pbuf_copy_partial(pq->pq_pbuf, cbuff, len,
+		    pq->pq_offset);
+		pq->pq_offset += this_len;
 		len -= this_len;
+		cbuff += this_len;
 		copied_len += this_len;
-		ns->ns_rd_offset += this_len;
 
-		if (ns->ns_rd_offset == p->len) {
-			ns->ns_rd_offset = 0;
-			ns->ns_pbuf_cur = NULL;
-			pbuf_free(p);
-			if ((p = ns->ns_pbuf_queue) != NULL) {
-				ns->ns_pbuf_queue = pbuf_dechain(p);
-				ns->ns_pbuf_cur = p;
+		if (pq->pq_offset == pq->pq_pbuf->tot_len) {
+			TAILQ_REMOVE(&ns->ns_pbuf_qhead, pq, pq_next);
+			pbuf_free(pq->pq_pbuf);
+			if (ns->ns_type == NETWORK_SOCK_TYPE_TCP) {
+				tcp_recved((struct tcp_pcb *)ns->ns_pcb,
+				    pq->pq_offset);
 			}
+			TAILQ_INSERT_HEAD(&nls->nls_pbuf_qfree, pq, pq_next);
 		}
 	}
-
-	if (ns->ns_type == NETWORK_SOCK_TYPE_TCP && copied_len)
-		tcp_recved((struct tcp_pcb *)ns->ns_pcb, copied_len);
 
 	return copied_len;
 }
@@ -743,6 +846,7 @@ static uint16_t
 network_lwip_rx_available(void *cookie, network_sock_t sock)
 {
 	struct network_lwip_socket *ns = (struct network_lwip_socket *)sock;
+	struct network_pbuf_queue *pq;
 	uint16_t rv;
 
 	(void) cookie;
@@ -752,40 +856,41 @@ network_lwip_rx_available(void *cookie, network_sock_t sock)
 
 	rv = 0;
 
-	if (ns->ns_pbuf_cur != NULL)
-		rv += ns->ns_pbuf_cur->len - ns->ns_rd_offset;
-
-	if (ns->ns_pbuf_queue != NULL)
-		rv += ns->ns_pbuf_queue->tot_len;
+	TAILQ_FOREACH(pq, &ns->ns_pbuf_qhead, pq_next)
+		rv += pq->pq_pbuf->tot_len - pq->pq_offset;
 
 	return rv;
 }
 
 static uint16_t
 network_lwip_tcp_write(struct network_lwip_socket *ns, const void *buff,
-    uint16_t len)
+    uint16_t len, bool push)
 {
 	uint16_t snd;
 	err_t err;
 
-	if (len == 0) {
-		if (tcp_output((struct tcp_pcb *)ns->ns_pcb) != ERR_OK)
-			return NETWORK_SOCK_ERR_EOF;
+	if (len == 0)
 		return 0;
-	}
 
 	snd = (uint16_t)tcp_sndbuf((struct tcp_pcb *)ns->ns_pcb);
 	if (len > snd)
 		len = snd;
 
-	err = tcp_write((struct tcp_pcb *)ns->ns_pcb, buff, len,
-	    TCP_WRITE_FLAG_COPY);
-	if (err != ERR_OK) {
-		if (err == ERR_MEM)
-			len = 0;
-		else
-			return NETWORK_SOCK_ERR_EOF;
+	if (len > 0) {
+		err = tcp_write((struct tcp_pcb *)ns->ns_pcb, buff, len,
+		    TCP_WRITE_FLAG_COPY | (push ? 0 : TCP_WRITE_FLAG_MORE));
+		if (err != ERR_OK) {
+			if (err == ERR_MEM)
+				len = 0;
+			else {
+				len = NETWORK_SOCK_ERR_EOF;
+				push = true;
+			}
+		}
 	}
+
+	if (push)
+		tcp_output((struct tcp_pcb *)ns->ns_pcb);
 
 	return len;
 }
@@ -808,15 +913,14 @@ network_lwip_udp_write(struct network_lwip_socket *ns, const void *buff,
 	memcpy(p->payload, buff, len);
 
 	err = udp_send((struct udp_pcb *)ns->ns_pcb, p);
-	if (err != ERR_OK)
-		pbuf_free(p);
+	pbuf_free(p);
 
 	return (err == ERR_OK) ? len : NETWORK_SOCK_ERR_EOF;
 }
 
 static uint16_t
 network_lwip_write(void *cookie, network_sock_t sock, const void *buff,
-    uint16_t len, const uint8_t *dstmac)
+    uint16_t len, const uint8_t *dstmac, bool push)
 {
 	struct network_lwip_socket *ns = (struct network_lwip_socket *)sock;
 	uint16_t rv;
@@ -828,7 +932,7 @@ network_lwip_write(void *cookie, network_sock_t sock, const void *buff,
 
 	if (ns->ns_type == NETWORK_SOCK_TYPE_TCP) {
 		assert(dstmac == NULL);
-		rv = network_lwip_tcp_write(ns, buff, len);
+		rv = network_lwip_tcp_write(ns, buff, len, push);
 	} else {
 		rv = network_lwip_udp_write(ns, buff, len, dstmac);
 	}
@@ -877,7 +981,10 @@ network_lwip_sock_status(void *cookie, network_sock_t sock,
 			pcb = ns->ns_pcb;
 			sp->sp_dport = pcb->remote_port;
 			sp->sp_dest_ip = ntoh32(pcb->remote_ip.addr);
-			ss = NETWORK_SOCKS_ESTABLISHED;
+			if (ns->ns_sock_state == NETWORK_LWIP_STATE_SYN_SENT)
+				ss = NETWORK_SOCKS_SYNSENT;
+			else
+				ss = NETWORK_SOCKS_ESTABLISHED;
 		}
 
 		sp->sp_sport = pcb->local_port;
@@ -950,6 +1057,15 @@ network_lwip_attach(struct network_lwip_driver *nld)
 	nls->nls_nsockets = 0;
 	nls->nls_dhcp_client_enabled = 0;
 	nls->nls_link_state = ~0;
+
+	TAILQ_INIT(&nls->nls_pbuf_qfree);
+	for (unsigned int i = 0; i < NETWORK_LWIP_PBUF_QUEUE; i++) {
+		TAILQ_INSERT_TAIL(&nls->nls_pbuf_qfree,
+		    &nls->nls_pbuf_queue_entries[i], pq_next);
+	}
+
+	network_ext_arg_listen_id = tcp_ext_arg_alloc_id();
+	network_ext_arg_connect_id = tcp_ext_arg_alloc_id();
 
 	nls->nls_network_state = network_register(&nls->nls_net_driver);
 

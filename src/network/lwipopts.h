@@ -36,6 +36,9 @@
 #endif
 
 #define	NO_SYS				1
+#define	LWIP_ETHERNET			1
+#define	LWIP_TCPIP_CORE_LOCKING		0
+#define	LWIP_ASSERT_CORE_LOCKED()	network_assert_driver_locked()
 #define	SYS_LIGHTWEIGHT_PROT		0
 
 #define	MEM_LIBC_MALLOC			0
@@ -43,8 +46,12 @@
 #define	 mem_clib_malloc		zone_malloc
 #define	 mem_clib_calloc(c,s)		zone_calloc((c) * (s))
 #define	MEM_ALIGNMENT			4
+#define	MEM_SIZE			16384
 
-#define	MEMP_NUM_PBUF			2
+#if (BOOTLOADER != 0)
+#define	MEMP_MEM_MALLOC			1
+#endif
+#define	MEMP_NUM_PBUF			16
 #define	MEMP_NUM_NETDB			0
 #define	MEMP_NUM_TCP_SEG		32
 
@@ -56,13 +63,11 @@
 #define	PBUF_LINK_ENCAPSULATION_HLEN	36
 #endif
 
-#define	LWIP_ASSERT_CORE_LOCKED()	network_assert_driver_locked()
-
 #define	LWIP_IPV4			1
 #define	LWIP_ICMP			1
 #define	LWIP_DHCP			1
+#define	LWIP_DHCP_DOES_ACD_CHECK	0
 
-#define	LWIP_ETHERNET			1
 #define	LWIP_SINGLE_NETIF		1
 #define	LWIP_NETIF_STATUS_CALLBACK	0
 #define	LWIP_NETIF_EXT_STATUS_CALLBACK	1
@@ -78,8 +83,7 @@
 #define	LWIP_POSIX_SOCKETS_IO_NAMES	0
 
 #define	LWIP_TCP_KEEPALIVE		1
-
-#define	LWIP_TCPIP_CORE_LOCKING		0
+#define	LWIP_TCP_PCB_NUM_EXT_ARGS	2
 
 #define	TCP_MSS				1460
 #define	TCP_SND_BUF			(8 * TCP_MSS)
@@ -89,13 +93,15 @@
 #ifdef NETWORK_OPT_HTTPD
 #define	HTTPD_ENABLE_HTTP		1
 #define	HTTPD_SERVER_AGENT		\
-	"Maven (https://www.maverick-embedded.co.uk/)"
+	"Maven2 (https://www.maverick-embedded.co.uk/)"
 #define	HTTPD_FSDATA_FILE		"fsdata_custom_data.c"
 #define	LWIP_HTTPD_FILE_EXTENSION	1
 #define	HTTPD_POLL_INTERVAL		1
+#if (BOOTLOADER == 0)
 #define	LWIP_HTTPD_CUSTOM_FILES		1
 #define	LWIP_HTTPD_DYNAMIC_HEADERS	1
 #define	LWIP_HTTPD_FILE_STATE		1
+#endif
 #define	LWIP_HTTPD_SUPPORT_POST		1
 #endif	/* NETWORK_OPT_HTTPD */
 

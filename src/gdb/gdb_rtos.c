@@ -94,6 +94,7 @@ gdb_rtos_init(void)
 static bool
 gdb_rtos_supported(target_rtos_type_t *prt)
 {
+	bool rv = true;
 	uint8_t t;
 
 	if (cf_get_uint8(CF_KEY_UINT8_RTOS_TYPE, &t) != 0) {
@@ -102,14 +103,14 @@ gdb_rtos_supported(target_rtos_type_t *prt)
 
 		/* Return now if user disabled RTOS support. */
 		if (t == TARGET_RTOS_NONE)
-			return false;
+			rv = false;
 	} else {
 		/* Force auto detection. */
 		t = TARGET_RTOS_NONE;
 	}
 
 	*prt = (target_rtos_type_t)t;
-	return true;
+	return rv;
 }
 
 gdb_rtos_state_t

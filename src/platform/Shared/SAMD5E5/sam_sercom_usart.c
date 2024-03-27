@@ -121,7 +121,6 @@ static int
 sam_usart_irq_rx_ready(struct sam_usart_state *us)
 {
 	uint32_t data;
-	int rv = 0;
 
 	data =  us->us_regs->DATA.reg;
 
@@ -131,14 +130,12 @@ sam_usart_irq_rx_ready(struct sam_usart_state *us)
 		return 0;
 
 	if (!ringbuff_is_full(us->us_uart2app)) {
-		rv = 1;
 		ringbuff_produce(us->us_uart2app, (uint8_t)(data & 0xffu));
 	} else {
-		rv = 0;
 		us->us_stats.us_rx_ring_overruns++;
 	}
 
-	return rv;
+	return 1;
 }
 
 static void
